@@ -26,25 +26,17 @@
  */
 
 GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
- : GuiFrame(300,300,parent)
+ : GuiFrame(0,0,parent)
  ,selected(0)
  ,captionText(caption)
- ,topValueImageData(Resources::GetImageData("gameSettingsButton.png"))
- ,topValueImage(topValueImageData)
- ,topValueImageSelectedData(Resources::GetImageData("gameSettingsButtonSelected.png"))
- ,topValueImageSelected(topValueImageSelectedData)
- ,topValueButton(topValueImage.getWidth(),topValueImage.getHeight())
- ,valueImageData(Resources::GetImageData("gameSettingsButtonEx.png"))
- ,valueSelectedImageData(Resources::GetImageData("gameSettingsButtonExSelected.png"))
- ,valueHighlightedImageData(Resources::GetImageData("gameSettingsButtonExHighlighted.png"))
+ ,topValueButton(0,0)
  ,touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
  ,wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
  ,buttonATrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_A, true)
  ,buttonBTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_B, true)
  ,buttonUpTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_UP | GuiTrigger::STICK_L_UP, true)
  ,buttonDownTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_DOWN | GuiTrigger::STICK_L_DOWN, true)
- ,DPADButtons(5,5)
- ,buttonClickSound(Resources::GetSound("settings_click_2.mp3"))
+ ,DPADButtons(0,0)
  {
     showValues = false;
     bChanged = false;
@@ -54,11 +46,8 @@ GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
     topValueText.setAlignment(ALIGN_LEFT);
     topValueText.setPosition(10,-7);
     topValueButton.setLabel(&topValueText);
-    topValueButton.setImage(&topValueImage);
-    topValueButton.setIconOver(&topValueImageSelected);
     topValueButton.setTrigger(&touchTrigger);
     topValueButton.setTrigger(&wpadTouchTrigger);
-    topValueButton.setSoundClick(buttonClickSound);
     topValueButton.clicked.connect(this, &GuiSelectBox::OnTopValueClicked);
 
     valuesFrame.setState(STATE_HIDDEN);
@@ -78,8 +67,7 @@ GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
     bChanged = true;
 }
 
-void GuiSelectBox::OnValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
+void GuiSelectBox::OnValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger){
   for(u32 i = 0; i < valueButtons.size(); ++i){
     if(valueButtons[i].valueButton == button){
         selected = i;
@@ -156,6 +144,10 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
 
     DeleteValueData();
 
+    if(valueImageData == NULL || valueSelectedImageData == NULL || valueHighlightedImageData == NULL){
+        return;
+    }
+
     valueButtons.resize(values.size());
 
     s32 i = 0;
@@ -167,9 +159,9 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
         }
 
         valueButtons[i].valueButtonImg = new GuiImage(valueImageData);
-
         valueButtons[i].valueButtonCheckedImg = new GuiImage(valueSelectedImageData);
         valueButtons[i].valueButtonHighlightedImg = new GuiImage(valueHighlightedImageData);
+
         valueButtons[i].valueButton = new GuiButton(valueButtons[i].valueButtonImg->getWidth() * imgScale, valueButtons[i].valueButtonImg->getHeight() * imgScale);
         valueButtons[i].valueButtonText = new GuiText(itr->first.c_str(),32,glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -190,7 +182,13 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
         //valueButtons[i].valueButton->setState(STATE_HIDDEN); //Wont get disabled soon enough
 
         buttonToValue[valueButtons[i].valueButton] = itr->second;
-        s32 ypos = (((valueButtons[i].valueButtonImg->getHeight()*getScale()) * (i))+ (topValueImage.getHeight()-5)*getScale())*-1.0f;
+
+        f32 topHeight = 0;
+        if(topBackgroundImg != NULL){
+            topHeight = topBackgroundImg->getHeight();
+        }
+
+        s32 ypos = (((valueButtons[i].valueButtonImg->getHeight()*getScale()) * (i))+ (topHeight-5)*getScale())*-1.0f;
         valueButtons[i].valueButton->setPosition(0, ypos);
         valuesFrame.append(valueButtons[i].valueButton);
 
@@ -220,18 +218,11 @@ void GuiSelectBox::DeleteValueData()
 /**
  * Destructor for the GuiButton class.
  */
-GuiSelectBox::~GuiSelectBox()
-{
+GuiSelectBox::~GuiSelectBox(){
     DeleteValueData();
     bChanged = false;
     selected = 0;
     showValues = false;
-    Resources::RemoveSound(buttonClickSound);
-    Resources::RemoveImageData(topValueImageData);
-    Resources::RemoveImageData(topValueImageSelectedData);
-    Resources::RemoveImageData(valueImageData);
-    Resources::RemoveImageData(valueHighlightedImageData);
-    Resources::RemoveImageData(valueSelectedImageData);
 }
 
 
@@ -246,11 +237,11 @@ void GuiSelectBox::OnValueCloseEffectFinish(GuiElement *element)
 }
 
 f32 GuiSelectBox::getTopValueHeight() {
-    return topValueImage.getHeight();
+    return topBackgroundImg == NULL ? 0 : topBackgroundImg->getHeight();
 }
 
 f32 GuiSelectBox::getTopValueWidth() {
-    return topValueImage.getWidth();
+    return topBackgroundImg == NULL ? 0 : topBackgroundImg->getWidth();
 }
 
 f32 GuiSelectBox::getHeight(){

@@ -32,6 +32,38 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
 
         sigslot::signal2<GuiSelectBox *, std::string> valueChanged;
         sigslot::signal2<GuiSelectBox *, bool> showhide;
+
+        void setImageTopBackground(GuiImage * img){
+            topBackgroundImg = img;
+            if(img != NULL){
+                setSize(img->getWidth(),img->getHeight());
+                topValueButton.setSize(img->getWidth(),img->getHeight());
+            }
+            topValueButton.setImage(img);
+        }
+
+        void setImageTopHighlighted(GuiImage * img){
+            topHighlightedImg = img;
+            topValueButton.setIconOver(img);
+        }
+
+        void setImageValueBackground(GuiImageData * img){
+            valueImageData = img;
+        }
+
+        void setImageValueHighlighted(GuiImageData * img){
+            valueHighlightedImageData = img;
+        }
+
+        void setImageValueSelected(GuiImageData * img){
+            valueSelectedImageData = img;
+        }
+
+        void setSoundClick(GuiSound * snd){
+            buttonClickSound = snd;
+            topValueButton.setSoundClick(snd);
+        }
+
         void OnTopValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
         void Init(std::map<std::string,std::string> values, s32 valueID);
 
@@ -62,10 +94,8 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
         bool opened;
         std::string captionText;
         GuiFrame valuesFrame;
-        GuiImageData *topValueImageData;
-        GuiImage topValueImage;
-        GuiImageData *topValueImageSelectedData;
-        GuiImage topValueImageSelected;
+        GuiImage* topBackgroundImg;
+        GuiImage* topHighlightedImg;
 
         GuiButton topValueButton;
         GuiImageData * valueImageData;
