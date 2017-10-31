@@ -21,8 +21,8 @@
  * 3. This notice may not be removed or altered from any source
  * distribution.
  ***************************************************************************/
-#ifndef SCROLLBAR_HPP_
-#define SCROLLBAR_HPP_
+#ifndef GUI_SCROLLBAR_HPP_
+#define GUI_SCROLLBAR_HPP_
 
 #include "gui/GuiElement.h"
 #include "gui/GuiButton.h"
@@ -42,11 +42,58 @@ class GuiScrollbar : public GuiElement, public sigslot::has_slots<>
 		//! Signals
 		sigslot::signal2<s32, s32> listChanged;
 		//! Slots
+		void SetScrollSpeed(s32 speed){ScrollSpeed = speed;};
 		void SetPageSize(s32 size);
 		void SetRowSize(s32 size);
 		void SetSelectedItem(s32 pos);
 		void SetSelectedIndex(s32 pos);
 		void SetEntrieCount(s32 cnt);
+
+		void setSoundClick(GuiSound * snd){
+		    clickSound = snd;
+		    arrowUpBtn->setSoundClick(snd);
+		    arrowDownBtn->setSoundClick(snd);
+		}
+
+        void setImageScrollbarLine(GuiImage * img){
+            if(img){
+                scrollbarLineImage = img;
+                scrollbarLineImage->setParent(this);
+                scrollbarLineImage->setParent(this);
+                scrollbarLineImage->setAlignment(ALIGN_CENTER | ALIGN_MIDDLE);
+                scrollbarLineImage->setPosition(0, 0);
+            }
+        }
+
+        void setImageArrowDown(GuiImage * img){
+            if(img){
+                arrowDownImage = img;
+                arrowDownBtn->setSize(img->getWidth(), img->getHeight());
+                arrowDownBtn->setImage(img);
+            }
+        }
+
+        void setImageArrowUp(GuiImage * img){
+            if(img){
+                arrowUpImage = img;
+                arrowUpBtn->setSize(img->getWidth(), img->getHeight());
+                arrowUpBtn->setImage(img);
+            }
+        }
+
+        void setImageScrollbarBox(GuiImage * img){
+            if(img){
+                scrollbarBoxImage = img;
+                scrollbarBoxBtn->setSize(img->getWidth(), height);
+                scrollbarBoxBtn->setImage(img);
+
+                width = img->getWidth();
+
+                MaxHeight = height * 0.5f - (img ? (img->getHeight() * 0.5f) : 0) - (arrowUpImage ? arrowUpImage->getHeight() : 0);
+                MinHeight = -height * 0.5f + (img ? (img->getHeight() * 0.5f) : 0) + (arrowDownImage ? arrowDownImage->getHeight() : 0);
+            }
+        }
+
 	protected:
 		void setScrollboxPosition(s32 SelItem, s32 SelInd);
 		void OnUpButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger);
@@ -67,15 +114,13 @@ class GuiScrollbar : public GuiElement, public sigslot::has_slots<>
 		GuiButton * arrowUpBtn;
 		GuiButton * arrowDownBtn;
 		GuiButton * scrollbarBoxBtn;
-		GuiImage * scrollbarLineImg;
-		GuiImage * arrowDownImg;
-		GuiImage * arrowUpImg;
-		GuiImage * scrollbarBoxImg;
-		GuiImageData * scrollbarLine;
-		GuiImageData * arrowDown;
-		GuiImageData * arrowUp;
-		GuiImageData * scrollbarBox;
-		GuiSound * btnSoundClick;
+
+		GuiSound * clickSound = NULL;
+
+		GuiImage * scrollbarLineImage = NULL;
+		GuiImage * arrowDownImage = NULL;
+		GuiImage * arrowUpImage = NULL;
+		GuiImage * scrollbarBoxImage = NULL;
 
 		GuiTrigger touchTrigger;
 		GuiTrigger wpadTouchTrigger;

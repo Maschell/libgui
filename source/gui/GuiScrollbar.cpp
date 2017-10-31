@@ -32,57 +32,33 @@ GuiScrollbar::GuiScrollbar(s32 h)
 	SelInd = 0;
 	PageSize = 0;
 	EntrieCount = 0;
-	ScrollSpeed = 15;
+	SetScrollSpeed(15);
 	ScrollState = 0;
 
 	listChanged.connect(this, &GuiScrollbar::setScrollboxPosition);
 
-	btnSoundClick = Resources::GetSound("button_click.mp3");
-	scrollbarLine = Resources::GetImageData("scrollbarLine.png");
-	arrowDown = Resources::GetImageData("scrollbarArrowDown.png");
-	arrowUp = Resources::GetImageData("scrollbarArrowUp.png");
-	scrollbarBox = Resources::GetImageData("scrollbarButton.png");
-
 	height = h;
-	width = scrollbarBox->getWidth();
 
-	MaxHeight = height * 0.5f - (scrollbarBox ? (scrollbarBox->getHeight() * 0.5f) : 0) - (arrowUp ? arrowUp->getHeight() : 0);
-	MinHeight = -height * 0.5f + (scrollbarBox ? (scrollbarBox->getHeight() * 0.5f) : 0) + (arrowDown ? arrowDown->getHeight() : 0);
-
-	scrollbarLineImg = new GuiImage(scrollbarLine);
-	scrollbarLineImg->setParent(this);
-	scrollbarLineImg->setAlignment(ALIGN_CENTER | ALIGN_MIDDLE);
-	scrollbarLineImg->setPosition(0, 0);
-
-	arrowDownImg = new GuiImage(arrowDown);
-	arrowUpImg = new GuiImage(arrowUp);
-	scrollbarBoxImg = new GuiImage(scrollbarBox);
-
-	arrowUpBtn = new GuiButton(arrowUpImg->getWidth(), arrowUpImg->getHeight());
+	arrowUpBtn = new GuiButton(50, 50);
 	arrowUpBtn->setParent(this);
-	arrowUpBtn->setImage(arrowUpImg);
 	arrowUpBtn->setAlignment(ALIGN_CENTER | ALIGN_TOP);
 	arrowUpBtn->setPosition(0, 0);
 	arrowUpBtn->setTrigger(&touchTrigger, 0);
 	arrowUpBtn->setTrigger(&wpadTouchTrigger, 1);
-	arrowUpBtn->setSoundClick(btnSoundClick);
 	arrowUpBtn->setEffectGrow();
 	arrowUpBtn->clicked.connect(this, &GuiScrollbar::OnUpButtonClick);
 
-	arrowDownBtn = new GuiButton(arrowDownImg->getWidth(), arrowDownImg->getHeight());
+	arrowDownBtn = new GuiButton(50, 50);
 	arrowDownBtn->setParent(this);
-	arrowDownBtn->setImage(arrowDownImg);
 	arrowDownBtn->setAlignment(ALIGN_CENTER | ALIGN_BOTTOM);
 	arrowDownBtn->setPosition(0, 0);
 	arrowDownBtn->setTrigger(&touchTrigger, 0);
 	arrowDownBtn->setTrigger(&wpadTouchTrigger, 1);
-	arrowDownBtn->setSoundClick(btnSoundClick);
 	arrowDownBtn->setEffectGrow();
 	arrowDownBtn->clicked.connect(this, &GuiScrollbar::OnDownButtonClick);
 
-	scrollbarBoxBtn = new GuiButton(scrollbarBoxImg->getWidth(), height);
+	scrollbarBoxBtn = new GuiButton(50, height);
 	scrollbarBoxBtn->setParent(this);
-	scrollbarBoxBtn->setImage(scrollbarBoxImg);
 	scrollbarBoxBtn->setAlignment(ALIGN_CENTER | ALIGN_TOP);
 	scrollbarBoxBtn->setPosition(0, MaxHeight);
 	scrollbarBoxBtn->setHoldable(true);
@@ -94,21 +70,9 @@ GuiScrollbar::GuiScrollbar(s32 h)
 
 GuiScrollbar::~GuiScrollbar()
 {
-	Resources::RemoveSound(btnSoundClick);
-	Resources::RemoveImageData(scrollbarLine);
-	Resources::RemoveImageData(arrowDown);
-	Resources::RemoveImageData(arrowUp);
-	Resources::RemoveImageData(scrollbarBox);
-
 	delete arrowUpBtn;
 	delete arrowDownBtn;
 	delete scrollbarBoxBtn;
-
-	delete scrollbarLineImg;
-
-	delete arrowDownImg;
-	delete arrowUpImg;
-	delete scrollbarBoxImg;
 }
 
 void GuiScrollbar::ScrollOneUp()
@@ -257,7 +221,7 @@ void GuiScrollbar::setScrollboxPosition(s32 SelItem, s32 SelInd)
 
 void GuiScrollbar::draw(CVideo * video)
 {
-	scrollbarLineImg->draw(video);
+	if(scrollbarLineImage){ scrollbarLineImage->draw(video); }
 	arrowUpBtn->draw(video);
 	arrowDownBtn->draw(video);
 	scrollbarBoxBtn->draw(video);
