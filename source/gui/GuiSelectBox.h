@@ -26,7 +26,7 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
 	public:
 		//!Constructor
 		//!\param checked Checked
-		GuiSelectBox(std::string caption,GuiFrame *parent = 0);
+		GuiSelectBox(GuiImage * background, std::string caption,f32 width = 0.0f, f32 height = 0.0f,GuiFrame *parent = 0);
 		//!Destructor
 		virtual ~GuiSelectBox();
 
@@ -35,10 +35,6 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
 
         void setImageTopBackground(GuiImage * img){
             topBackgroundImg = img;
-            if(img != NULL){
-                setSize(img->getWidth(),img->getHeight());
-                topValueButton.setSize(img->getWidth(),img->getHeight());
-            }
             topValueButton.setImage(img);
         }
 
@@ -69,6 +65,7 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
 
         void setState(s32 s, s32 c = -1);
 
+        virtual void setSize(f32 width, f32 height);
         virtual f32 getTopValueHeight();
         virtual f32 getTopValueWidth();
 
@@ -94,13 +91,13 @@ class GuiSelectBox : public GuiFrame, public sigslot::has_slots<>{
         bool opened;
         std::string captionText;
         GuiFrame valuesFrame;
-        GuiImage* topBackgroundImg;
-        GuiImage* topHighlightedImg;
+        GuiImage* topBackgroundImg = NULL;
+        GuiImage* topHighlightedImg = NULL;
 
         GuiButton topValueButton;
-        GuiImageData * valueImageData;
-        GuiImageData * valueSelectedImageData;
-        GuiImageData * valueHighlightedImageData;
+        GuiImageData * valueImageData = NULL;
+        GuiImageData * valueSelectedImageData = NULL;
+        GuiImageData * valueHighlightedImageData = NULL;
         GuiText topValueText;
 
         GuiTrigger touchTrigger;

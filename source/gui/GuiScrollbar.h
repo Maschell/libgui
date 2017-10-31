@@ -27,11 +27,11 @@
 #include "gui/GuiElement.h"
 #include "gui/GuiButton.h"
 
-class Scrollbar : public GuiElement, public sigslot::has_slots<>
+class GuiScrollbar : public GuiElement, public sigslot::has_slots<>
 {
 	public:
-		Scrollbar(s32 height);
-		virtual ~Scrollbar();
+		GuiScrollbar(s32 height);
+		virtual ~GuiScrollbar();
 		void ScrollOneUp();
 		void ScrollOneDown();
 		s32 GetSelectedItem() { return SelItem; }

@@ -26,7 +26,7 @@ class GuiSwitch : public GuiToggle{
 	public:
 		//!Constructor
 		//!\param checked Checked
-		GuiSwitch(bool checked,f32 w = 0.0f, f32 h = 0.0f);
+		GuiSwitch(GuiImage * background, bool checked, f32 w = 0.0f, f32 h = 0.0f);
 		//!Destructor
 		virtual ~GuiSwitch();
 
@@ -37,13 +37,12 @@ class GuiSwitch : public GuiToggle{
         void setImageOff(GuiImage* img);
 
         void setImageHighlighted(GuiImage* img);
-
 	protected:
 
-        GuiImage * backgroundImg;
-        GuiImage * onImg;
-        GuiImage * offImg;
-        GuiImage * highlightedImg;
+        GuiImage * backgroundImg = NULL;
+        GuiImage * onImg = NULL;
+        GuiImage * offImg = NULL;
+        GuiImage * highlightedImg = NULL;
 
         void draw(CVideo * v);
 };

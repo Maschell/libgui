@@ -16,17 +16,20 @@
  ****************************************************************************/
 #include <vector>
 #include <string>
+#include <utils/StringTools.h>
+#include <utils/logger.h>
+
 #include "GuiSelectBox.h"
 #include "GuiImage.h"
 #include "GuiTrigger.h"
 #include "GuiImageData.h"
-#include "utils/StringTools.h"
+
 /**
  * Constructor for the GuiCheckBox class.
  */
 
-GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
- : GuiFrame(0,0,parent)
+GuiSelectBox::GuiSelectBox(GuiImage * background,std::string caption,f32 width,f32 height,GuiFrame *parent)
+ : GuiFrame(width,height,parent)
  ,selected(0)
  ,captionText(caption)
  ,topValueButton(0,0)
@@ -38,6 +41,7 @@ GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
  ,buttonDownTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_DOWN | GuiTrigger::STICK_L_DOWN, true)
  ,DPADButtons(0,0)
  {
+    setImageTopBackground(background);
     showValues = false;
     bChanged = false;
     bSelectedChanged = false;
@@ -65,6 +69,11 @@ GuiSelectBox::GuiSelectBox(std::string caption,GuiFrame *parent)
 
     showValues = false;
     bChanged = true;
+}
+
+void GuiSelectBox::setSize(f32 width,f32 height){
+    GuiFrame::setSize(width,height);
+    topValueButton.setSize(width,height);
 }
 
 void GuiSelectBox::OnValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger){
@@ -237,11 +246,17 @@ void GuiSelectBox::OnValueCloseEffectFinish(GuiElement *element)
 }
 
 f32 GuiSelectBox::getTopValueHeight() {
-    return topBackgroundImg == NULL ? 0 : topBackgroundImg->getHeight();
+    if(topBackgroundImg == NULL){
+        return 0.0f;
+    }
+    return topBackgroundImg->getHeight();
 }
 
 f32 GuiSelectBox::getTopValueWidth() {
-    return topBackgroundImg == NULL ? 0 : topBackgroundImg->getWidth();
+    if(topBackgroundImg == NULL){
+        return 0.0f;
+    }
+    return topBackgroundImg->getWidth();
 }
 
 f32 GuiSelectBox::getHeight(){

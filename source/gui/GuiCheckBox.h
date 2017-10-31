@@ -26,7 +26,7 @@ class GuiCheckBox : public GuiToggle{
 	public:
 		//!Constructor
 		//!\param checked Checked
-		GuiCheckBox(bool checked, f32 width = 0.0f,f32 height= 0.0f);
+		GuiCheckBox(GuiImage * background, bool checked, f32 width = 0.0f,f32 height= 0.0f);
 
 		//!Destructor
 		virtual ~GuiCheckBox();

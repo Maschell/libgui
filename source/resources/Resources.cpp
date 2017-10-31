@@ -7,7 +7,6 @@
 #include <fs/FSUtils.h>
 #include "gui/GuiImageAsync.h"
 #include "gui/GuiSound.h"
-#include "utils/logger.h"
 
 Resources * Resources::instance = NULL;
 
@@ -65,7 +64,6 @@ bool Resources::LoadFiles(const char * path)
 
 const u8 * Resources::GetFile(const char * filename)
 {
-    DEBUG_FUNCTION_LINE(".\n");
     ResourceFile * ResourceList = getResourceList();
     if(ResourceList == NULL) return NULL;
 

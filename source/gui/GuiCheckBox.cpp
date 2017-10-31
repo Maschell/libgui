@@ -21,9 +21,9 @@
  * Constructor for the GuiCheckBox class.
  */
 
-GuiCheckBox::GuiCheckBox(bool checked, f32 width,f32 height)
+GuiCheckBox::GuiCheckBox(GuiImage * background, bool checked, f32 width,f32 height)
  : GuiToggle(checked,width,height){
-
+    setImageBackground(background);
 }
 
 /**
@@ -36,7 +36,6 @@ GuiCheckBox::~GuiCheckBox(){
 void GuiCheckBox::setImageBackground(GuiImage* img){
 	backgroundImg = img;
 	if(img){ img->setParent(this); }
-	setImage(img);
 }
 
 void GuiCheckBox::setImageSelected(GuiImage* img){

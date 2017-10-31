@@ -24,7 +24,7 @@
 #include "GuiScrollbar.h"
 #include "resources/Resources.h"
 
-Scrollbar::Scrollbar(s32 h)
+GuiScrollbar::GuiScrollbar(s32 h)
     : touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
     , wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
 {
@@ -35,7 +35,7 @@ Scrollbar::Scrollbar(s32 h)
 	ScrollSpeed = 15;
 	ScrollState = 0;
 
-	listChanged.connect(this, &Scrollbar::setScrollboxPosition);
+	listChanged.connect(this, &GuiScrollbar::setScrollboxPosition);
 
 	btnSoundClick = Resources::GetSound("button_click.mp3");
 	scrollbarLine = Resources::GetImageData("scrollbarLine.png");
@@ -67,7 +67,7 @@ Scrollbar::Scrollbar(s32 h)
 	arrowUpBtn->setTrigger(&wpadTouchTrigger, 1);
 	arrowUpBtn->setSoundClick(btnSoundClick);
 	arrowUpBtn->setEffectGrow();
-	arrowUpBtn->clicked.connect(this, &Scrollbar::OnUpButtonClick);
+	arrowUpBtn->clicked.connect(this, &GuiScrollbar::OnUpButtonClick);
 
 	arrowDownBtn = new GuiButton(arrowDownImg->getWidth(), arrowDownImg->getHeight());
 	arrowDownBtn->setParent(this);
@@ -78,7 +78,7 @@ Scrollbar::Scrollbar(s32 h)
 	arrowDownBtn->setTrigger(&wpadTouchTrigger, 1);
 	arrowDownBtn->setSoundClick(btnSoundClick);
 	arrowDownBtn->setEffectGrow();
-	arrowDownBtn->clicked.connect(this, &Scrollbar::OnDownButtonClick);
+	arrowDownBtn->clicked.connect(this, &GuiScrollbar::OnDownButtonClick);
 
 	scrollbarBoxBtn = new GuiButton(scrollbarBoxImg->getWidth(), height);
 	scrollbarBoxBtn->setParent(this);
@@ -89,10 +89,10 @@ Scrollbar::Scrollbar(s32 h)
 	scrollbarBoxBtn->setTrigger(&touchTrigger, 0);
 	scrollbarBoxBtn->setTrigger(&wpadTouchTrigger, 1);
 	scrollbarBoxBtn->setEffectGrow();
-	scrollbarBoxBtn->held.connect(this, &Scrollbar::OnBoxButtonHold);
+	scrollbarBoxBtn->held.connect(this, &GuiScrollbar::OnBoxButtonHold);
 }
 
-Scrollbar::~Scrollbar()
+GuiScrollbar::~GuiScrollbar()
 {
 	Resources::RemoveSound(btnSoundClick);
 	Resources::RemoveImageData(scrollbarLine);
@@ -111,7 +111,7 @@ Scrollbar::~Scrollbar()
 	delete scrollbarBoxImg;
 }
 
-void Scrollbar::ScrollOneUp()
+void GuiScrollbar::ScrollOneUp()
 {
     if(SelItem == 0 && SelInd > 0)
     {
@@ -124,7 +124,7 @@ void Scrollbar::ScrollOneUp()
     }
 }
 
-void Scrollbar::ScrollOneDown()
+void GuiScrollbar::ScrollOneDown()
 {
     if(SelInd+SelItem + 1 < EntrieCount)
     {
@@ -140,7 +140,7 @@ void Scrollbar::ScrollOneDown()
     }
 }
 
-void Scrollbar::OnUpButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
+void GuiScrollbar::OnUpButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
 {
 	if(ScrollState < ScrollSpeed)
 		return;
@@ -151,7 +151,7 @@ void Scrollbar::OnUpButtonClick(GuiButton *button, const GuiController *controll
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::OnDownButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
+void GuiScrollbar::OnDownButtonClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
 {
 	if(ScrollState < ScrollSpeed)
 		return;
@@ -162,7 +162,7 @@ void Scrollbar::OnDownButtonClick(GuiButton *button, const GuiController *contro
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::OnBoxButtonHold(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
+void GuiScrollbar::OnBoxButtonHold(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
 {
     if(EntrieCount == 0){
         return;
@@ -207,7 +207,7 @@ void Scrollbar::OnBoxButtonHold(GuiButton *button, const GuiController *controll
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::SetPageSize(s32 size)
+void GuiScrollbar::SetPageSize(s32 size)
 {
 	if(PageSize == size)
 		return;
@@ -216,7 +216,7 @@ void Scrollbar::SetPageSize(s32 size)
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::SetSelectedItem(s32 pos)
+void GuiScrollbar::SetSelectedItem(s32 pos)
 {
 	if(SelItem == pos)
 		return;
@@ -225,7 +225,7 @@ void Scrollbar::SetSelectedItem(s32 pos)
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::SetSelectedIndex(s32 pos)
+void GuiScrollbar::SetSelectedIndex(s32 pos)
 {
 	if(SelInd == pos)
 		return;
@@ -234,7 +234,7 @@ void Scrollbar::SetSelectedIndex(s32 pos)
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::SetEntrieCount(s32 cnt)
+void GuiScrollbar::SetEntrieCount(s32 cnt)
 {
 	if(EntrieCount == cnt)
 		return;
@@ -243,7 +243,7 @@ void Scrollbar::SetEntrieCount(s32 cnt)
 	listChanged(SelItem, SelInd);
 }
 
-void Scrollbar::setScrollboxPosition(s32 SelItem, s32 SelInd)
+void GuiScrollbar::setScrollboxPosition(s32 SelItem, s32 SelInd)
 {
     s32 position = MaxHeight-(MaxHeight-MinHeight)*(SelInd+SelItem)/(EntrieCount-1);
 
@@ -255,7 +255,7 @@ void Scrollbar::setScrollboxPosition(s32 SelItem, s32 SelInd)
     scrollbarBoxBtn->setPosition(0, position);
 }
 
-void Scrollbar::draw(CVideo * video)
+void GuiScrollbar::draw(CVideo * video)
 {
 	scrollbarLineImg->draw(video);
 	arrowUpBtn->draw(video);
@@ -265,7 +265,7 @@ void Scrollbar::draw(CVideo * video)
 	updateEffects();
 }
 
-void Scrollbar::update(GuiController * t)
+void GuiScrollbar::update(GuiController * t)
 {
 	if(this->isStateSet(STATE_DISABLED))
 		return;

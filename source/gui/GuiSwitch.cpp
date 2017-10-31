@@ -22,9 +22,9 @@
  * Constructor for the GuiSwitch class.
  */
 
-GuiSwitch::GuiSwitch(bool checked,f32 w, f32 h)
+GuiSwitch::GuiSwitch(GuiImage * background,bool checked,f32 w, f32 h)
  : GuiToggle(checked,w,h){
-
+    setImageBackground(background);
 }
 /**
  * Destructor for the GuiSwitch class.
@@ -35,10 +35,7 @@ GuiSwitch::~GuiSwitch(){
 
 void GuiSwitch::setImageBackground(GuiImage* img){
 	backgroundImg = img;
-	if(img){
-        img->setParent(this);
-
-	}
+	if(img){ img->setParent(this); }
 	setImage(img);
 }
 

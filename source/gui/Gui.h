@@ -19,6 +19,7 @@
 
 #include "FreeTypeGX.h"
 #include "GameBgImage.h"
+#include "GridBackground.h"
 #include "GuiButton.h"
 #include "GuiCheckBox.h"
 #include "GuiController.h"
