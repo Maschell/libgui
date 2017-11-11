@@ -25,6 +25,14 @@ Link the application with:
 -lgui -lutils -ldynamiclibs -lfreetype -lgd -lpng -ljpeg -lz  -lmad -lvorbisidec
 ```
 
+You also need to add the include path to your Makefile. Example:
+
+```
+export INCLUDE	:= [...] -I$(PORTLIBS)/include/freetype2 \
+						 -I$(PORTLIBS)/include/libgui \
+						 -I$(PORTLIBS)/include
+```
+
 TODO: provide more information
 
 ## Dependencies
