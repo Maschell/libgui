@@ -22,13 +22,18 @@
 class GuiParticleImage : public GuiImage, public sigslot::has_slots<>
 {
 public:
-    GuiParticleImage(s32 w, s32 h, u32 particleCount);
+    GuiParticleImage(s32 w, s32 h, u32 particleCount, f32 minRadius, f32 maxRadius, f32 minSpeed, f32 maxSpeed);
     virtual ~GuiParticleImage();
 
     void draw(CVideo *pVideo);
 private:
     f32 *posVertexs;
     u8 *colorVertexs;
+
+    f32 minRadius;
+    f32 maxRadius;
+    f32 minSpeed;
+    f32 maxSpeed;
 
     typedef struct
     {

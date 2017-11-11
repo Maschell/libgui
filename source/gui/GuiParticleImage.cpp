@@ -30,12 +30,16 @@ static inline f32 getRandMinusOneToOneF32()
     return getRandZeroToOneF32() * 2.0f - 1.0f;
 }
 
-GuiParticleImage::GuiParticleImage(s32 w, s32 h, u32 particleCount)
+GuiParticleImage::GuiParticleImage(s32 w, s32 h, u32 particleCount, f32 minRadius, f32 maxRadius, f32 minSpeed, f32 maxSpeed)
     : GuiImage(NULL)
 {
     width = w;
     height = h;
 	imgType = IMAGE_COLOR;
+	this->minRadius = minRadius;
+	this->maxRadius = maxRadius;
+	this->minSpeed = minSpeed;
+	this->maxSpeed = maxSpeed;
 
     posVertexs = (f32 *) memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ColorShader::cuVertexAttrSize * CIRCLE_VERTEX_COUNT);
     colorVertexs = (u8 *) memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ColorShader::cuColorAttrSize * CIRCLE_VERTEX_COUNT);
@@ -62,8 +66,8 @@ GuiParticleImage::GuiParticleImage(s32 w, s32 h, u32 particleCount)
         particles[i].position.y = getRandMinusOneToOneF32() * getHeight() * 0.5f;
         particles[i].position.z = 0.0f;
         particles[i].colors = glm::vec4(1.0f, 1.0f, 1.0f, (getRandZeroToOneF32() * 0.6f) + 0.05f);
-        particles[i].radius = getRandZeroToOneF32() * 30.0f + 60.0f;
-        particles[i].speed = (getRandZeroToOneF32() * 0.4f) + 0.6f;
+        particles[i].radius = getRandZeroToOneF32() * (maxRadius - minRadius) + minRadius;
+        particles[i].speed = (getRandZeroToOneF32() * (maxSpeed - minSpeed)) + minSpeed;
         particles[i].direction = getRandMinusOneToOneF32();
     }
 }
@@ -97,8 +101,8 @@ void GuiParticleImage::draw(CVideo *pVideo)
             particles[i].position.x = getRandMinusOneToOneF32() * getWidth() * 0.5f;
             particles[i].position.y = -getHeight() * 0.5f - 30.0f;
             particles[i].colors = glm::vec4(1.0f, 1.0f, 1.0f, (getRandZeroToOneF32() * 0.6f) + 0.05f);
-            particles[i].radius = getRandZeroToOneF32() * 30.0f + 60.0f;
-            particles[i].speed = (getRandZeroToOneF32() * 0.4f) + 0.6f;
+            particles[i].radius = getRandZeroToOneF32() * (maxRadius - minRadius) + minRadius;
+            particles[i].speed = (getRandZeroToOneF32() * (maxSpeed - minSpeed)) + minSpeed;
             particles[i].direction = getRandMinusOneToOneF32();
         }
         if(particles[i].position.x < (-getWidth() * 0.5f - 50.0f))
