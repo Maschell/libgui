@@ -1,5 +1,5 @@
 # libgui
-
+[![Build Status](https://travis-ci.org/Maschell/libgui.svg?branch=master)](https://travis-ci.org/Maschell/libgui)  
 
 ## Usage
 Following steps are required for initialization:
