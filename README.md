@@ -3,7 +3,7 @@
 
 ## Usage
 Following steps are required for initialization:
-```
+```C
 InitOSFunctionPointers();   // Load OS functions
 InitPadScoreFunctionPointers();
 InitVPadFunctionPointers(); // Input functions for GUI control
@@ -21,13 +21,13 @@ unmount_sd_fat("sd");
 ```
 
 Link the application with:
-```
+```Makefile
 -lgui -lutils -ldynamiclibs -lfreetype -lgd -lpng -ljpeg -lz  -lmad -lvorbisidec
 ```
 
 You also need to add the include path to your Makefile. Example:
 
-```
+```Makefile
 export INCLUDE	:= [...] -I$(PORTLIBS)/include/freetype2 \
 						 -I$(PORTLIBS)/include/libgui \
 						 -I$(PORTLIBS)/include
