@@ -29,6 +29,7 @@ before_install:
   - yes | sudo dkp-pacman -Syu devkitPPC
 
 install:
+  - 7z x -y ./libs/portlibs.zip -o${DEVKITPRO}
   - cd $PORTLIBREPOS
   - ((git clone https://github.com/Maschell/dynamic_libs.git -b lib && (7z x -y ./dynamic_libs/libs/portlibs.zip -o${DEVKITPRO})) || (cd dynamic_libs && git pull))
   - (git clone https://github.com/Maschell/libutils.git || (cd libutils && git pull))   
