@@ -19,28 +19,27 @@
 #include <utils/StringTools.h>
 #include <utils/logger.h>
 
-#include "GuiSelectBox.h"
-#include "GuiImage.h"
-#include "GuiTrigger.h"
-#include "GuiImageData.h"
+#include <gui/GuiSelectBox.h>
+#include <gui/GuiImage.h>
+#include <gui/GuiTrigger.h>
+#include <gui/GuiImageData.h>
 
 /**
  * Constructor for the GuiCheckBox class.
  */
 
-GuiSelectBox::GuiSelectBox(GuiImage * background,std::string caption,f32 width,f32 height,GuiFrame *parent)
- : GuiFrame(width,height,parent)
- ,selected(0)
- ,captionText(caption)
- ,topValueButton(0,0)
- ,touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
- ,wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
- ,buttonATrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_A, true)
- ,buttonBTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_B, true)
- ,buttonUpTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_UP | GuiTrigger::STICK_L_UP, true)
- ,buttonDownTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_DOWN | GuiTrigger::STICK_L_DOWN, true)
- ,DPADButtons(0,0)
- {
+GuiSelectBox::GuiSelectBox(GuiImage * background,std::string caption,float width,float height,GuiFrame *parent)
+    : GuiFrame(width,height,parent)
+    ,selected(0)
+    ,captionText(caption)
+    ,topValueButton(0,0)
+    ,touchTrigger(GuiTrigger::CHANNEL_1, GuiTrigger::VPAD_TOUCH)
+    ,wpadTouchTrigger(GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5, GuiTrigger::BUTTON_A)
+    ,buttonATrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_A, true)
+    ,buttonBTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_B, true)
+    ,buttonUpTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_UP | GuiTrigger::STICK_L_UP, true)
+    ,buttonDownTrigger(GuiTrigger::CHANNEL_ALL, GuiTrigger::BUTTON_DOWN | GuiTrigger::STICK_L_DOWN, true)
+    ,DPADButtons(0,0) {
     setImageTopBackground(background);
     showValues = false;
     bChanged = false;
@@ -71,23 +70,23 @@ GuiSelectBox::GuiSelectBox(GuiImage * background,std::string caption,f32 width,f
     bChanged = true;
 }
 
-void GuiSelectBox::setSize(f32 width,f32 height){
+void GuiSelectBox::setSize(float width,float height) {
     GuiFrame::setSize(width,height);
     topValueButton.setSize(width,height);
 }
 
-void GuiSelectBox::OnValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger){
-  for(u32 i = 0; i < valueButtons.size(); ++i){
-    if(valueButtons[i].valueButton == button){
-        selected = i;
-        SelectValue(i);
-        break;
+void GuiSelectBox::OnValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    for(uint32_t i = 0; i < valueButtons.size(); ++i) {
+        if(valueButtons[i].valueButton == button) {
+            selected = i;
+            SelectValue(i);
+            break;
+        }
     }
-  }
 }
 
-void GuiSelectBox::SelectValue(u32 value){
-    if(value < valueButtons.size()){
+void GuiSelectBox::SelectValue(uint32_t value) {
+    if(value < valueButtons.size()) {
         const wchar_t* w_text = valueButtons[value].valueButtonText->getText();
         std::wstring ws(w_text);
         std::string text(ws.begin(), ws.end());
@@ -101,40 +100,32 @@ void GuiSelectBox::SelectValue(u32 value){
     }
 }
 
-void GuiSelectBox::OnTopValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
+void GuiSelectBox::OnTopValueClicked(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
     ShowHideValues(!showValues);
 }
 
-void GuiSelectBox::ShowHideValues(bool showhide)
-{
+void GuiSelectBox::ShowHideValues(bool showhide) {
     showValues = showhide;
     bChanged = true;
 }
 
-void GuiSelectBox::OnDPADClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger)
-{
-    if(opened == true){
-        if(trigger == &buttonATrigger)
-        {
+void GuiSelectBox::OnDPADClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    if(opened == true) {
+        if(trigger == &buttonATrigger) {
             //! do not auto launch when wiimote is pointing to screen and presses A
-            if((controller->chan & (GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5)) && controller->data.validPointer)
-            {
+            if((controller->chan & (GuiTrigger::CHANNEL_2 | GuiTrigger::CHANNEL_3 | GuiTrigger::CHANNEL_4 | GuiTrigger::CHANNEL_5)) && controller->data.validPointer) {
                 return;
             }
             SelectValue(selected);
-        }
-        else if(trigger == &buttonBTrigger)
-        {
-            if(button == &DPADButtons){
+        } else if(trigger == &buttonBTrigger) {
+            if(button == &DPADButtons) {
                 ShowHideValues(false);
-            }else{
-             }
-        }else if(trigger == &buttonUpTrigger){
+            } else {
+            }
+        } else if(trigger == &buttonUpTrigger) {
             if(selected > 0 ) selected--;
             bSelectedChanged = true;
-        }
-        else if(trigger == &buttonDownTrigger){
+        } else if(trigger == &buttonDownTrigger) {
             selected++;
             if(selected >= valueButtons.size()) selected = valueButtons.size() - 1;
             bSelectedChanged = true;
@@ -142,9 +133,8 @@ void GuiSelectBox::OnDPADClick(GuiButton *button, const GuiController *controlle
     }
 }
 
-void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
-{
-    if((u32)valueID >= values.size()){
+void GuiSelectBox::Init(std::map<std::string,std::string> values, int32_t valueID) {
+    if((uint32_t)valueID >= values.size()) {
         valueID = 0;
     }
 
@@ -153,17 +143,17 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
 
     DeleteValueData();
 
-    if(valueImageData == NULL || valueSelectedImageData == NULL || valueHighlightedImageData == NULL){
+    if(valueImageData == NULL || valueSelectedImageData == NULL || valueHighlightedImageData == NULL) {
         return;
     }
 
     valueButtons.resize(values.size());
 
-    s32 i = 0;
-    f32 imgScale = 1.0f;
+    int32_t i = 0;
+    float imgScale = 1.0f;
     std::map<std::string, std::string>::iterator itr;
     for(itr = values.begin(); itr != values.end(); itr++) {
-        if(i == valueID){
+        if(i == valueID) {
             topValueText.setText(itr->first.c_str());
         }
 
@@ -192,12 +182,12 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
 
         buttonToValue[valueButtons[i].valueButton] = itr->second;
 
-        f32 topHeight = 0;
-        if(topBackgroundImg != NULL){
+        float topHeight = 0;
+        if(topBackgroundImg != NULL) {
             topHeight = topBackgroundImg->getHeight();
         }
 
-        s32 ypos = (((valueButtons[i].valueButtonImg->getHeight()*getScale()) * (i))+ (topHeight-5)*getScale())*-1.0f;
+        int32_t ypos = (((valueButtons[i].valueButtonImg->getHeight()*getScale()) * (i))+ (topHeight-5)*getScale())*-1.0f;
         valueButtons[i].valueButton->setPosition(0, ypos);
         valuesFrame.append(valueButtons[i].valueButton);
 
@@ -209,10 +199,8 @@ void GuiSelectBox::Init(std::map<std::string,std::string> values, s32 valueID)
     bChanged = true;
 }
 
-void GuiSelectBox::DeleteValueData()
-{
-    for(u32 i = 0; i < valueButtons.size(); ++i)
-    {
+void GuiSelectBox::DeleteValueData() {
+    for(uint32_t i = 0; i < valueButtons.size(); ++i) {
         valuesFrame.remove(valueButtons[i].valueButton);
         delete valueButtons[i].valueButtonImg;
         delete valueButtons[i].valueButtonCheckedImg;
@@ -227,7 +215,7 @@ void GuiSelectBox::DeleteValueData()
 /**
  * Destructor for the GuiButton class.
  */
-GuiSelectBox::~GuiSelectBox(){
+GuiSelectBox::~GuiSelectBox() {
     DeleteValueData();
     bChanged = false;
     selected = 0;
@@ -235,61 +223,58 @@ GuiSelectBox::~GuiSelectBox(){
 }
 
 
-void GuiSelectBox::setState(s32 s, s32 c)
-{
-	GuiElement::setState(s, c);
+void GuiSelectBox::setState(int32_t s, int32_t c) {
+    GuiElement::setState(s, c);
 }
 
-void GuiSelectBox::OnValueCloseEffectFinish(GuiElement *element)
-{
+void GuiSelectBox::OnValueCloseEffectFinish(GuiElement *element) {
     valuesFrame.effectFinished.disconnect(this);
 }
 
-f32 GuiSelectBox::getTopValueHeight() {
-    if(topBackgroundImg == NULL){
+float GuiSelectBox::getTopValueHeight() {
+    if(topBackgroundImg == NULL) {
         return 0.0f;
     }
     return topBackgroundImg->getHeight();
 }
 
-f32 GuiSelectBox::getTopValueWidth() {
-    if(topBackgroundImg == NULL){
+float GuiSelectBox::getTopValueWidth() {
+    if(topBackgroundImg == NULL) {
         return 0.0f;
     }
     return topBackgroundImg->getWidth();
 }
 
-f32 GuiSelectBox::getHeight(){
+float GuiSelectBox::getHeight() {
     return getTopValueHeight();
 }
 
-f32 GuiSelectBox::getWidth(){
+float GuiSelectBox::getWidth() {
     return getTopValueWidth();
 }
 
 
-void GuiSelectBox::OnValueOpenEffectFinish(GuiElement *element)
-{
+void GuiSelectBox::OnValueOpenEffectFinish(GuiElement *element) {
     valuesFrame.effectFinished.disconnect(this);
     opened = true;
 }
 
-void GuiSelectBox::update(GuiController * c){
-    if(bChanged){
+void GuiSelectBox::update(GuiController * c) {
+    if(bChanged) {
         showhide(this,showValues);
-        if(showValues){
-            for(u32 i = 0; i < valueButtons.size(); ++i){ //TODO: only set when it really changed
-                if(i == selected){
+        if(showValues) {
+            for(uint32_t i = 0; i < valueButtons.size(); ++i) { //TODO: only set when it really changed
+                if(i == selected) {
                     valueButtons[i].valueButton->setImage(valueButtons[i].valueButtonCheckedImg);
-                }else{
-                     valueButtons[i].valueButton->setImage(valueButtons[i].valueButtonImg);
+                } else {
+                    valueButtons[i].valueButton->setImage(valueButtons[i].valueButtonImg);
                 }
             }
             valuesFrame.clearState(STATE_HIDDEN);
             DPADButtons.clearState(STATE_DISABLE_INPUT);
             valuesFrame.setEffect(EFFECT_FADE, 10, 255);
             valuesFrame.effectFinished.connect(this, &GuiSelectBox::OnValueCloseEffectFinish);
-        }else{
+        } else {
             opened = false;
             valuesFrame.setState(STATE_HIDDEN);
             DPADButtons.setState(STATE_DISABLE_INPUT);
@@ -299,12 +284,12 @@ void GuiSelectBox::update(GuiController * c){
 
         bChanged = false;
     }
-    if(bSelectedChanged){
-        for(u32 i = 0; i < valueButtons.size(); ++i){
-            if(i == selected){
-                 valueButtons[i].valueButton->setState(STATE_SELECTED);
-            }else{
-                 valueButtons[i].valueButton->clearState(STATE_SELECTED);
+    if(bSelectedChanged) {
+        for(uint32_t i = 0; i < valueButtons.size(); ++i) {
+            if(i == selected) {
+                valueButtons[i].valueButton->setState(STATE_SELECTED);
+            } else {
+                valueButtons[i].valueButton->clearState(STATE_SELECTED);
             }
         }
     }

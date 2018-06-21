@@ -24,119 +24,105 @@
  * for WiiXplorer 2010
  ***************************************************************************/
 #include <malloc.h>
-#include "utils/utils.h"
-#include "BufferCircle.hpp"
+#include <utils/utils.h>
+#include <sounds/BufferCircle.hpp>
 
-BufferCircle::BufferCircle()
-{
-	which = 0;
-	BufferBlockSize = 0;
+BufferCircle::BufferCircle() {
+    which = 0;
+    BufferBlockSize = 0;
 }
 
-BufferCircle::~BufferCircle()
-{
-	FreeBuffer();
-	SoundBuffer.clear();
-	BufferSize.clear();
-	BufferReady.clear();
+BufferCircle::~BufferCircle() {
+    FreeBuffer();
+    SoundBuffer.clear();
+    BufferSize.clear();
+    BufferReady.clear();
 }
 
-void BufferCircle::SetBufferBlockSize(s32 size)
-{
-	if(size < 0)
-		return;
+void BufferCircle::SetBufferBlockSize(int32_t size) {
+    if(size < 0)
+        return;
 
-	BufferBlockSize = size;
+    BufferBlockSize = size;
 
-	for(s32 i = 0; i < Size(); i++)
-	{
-		if(SoundBuffer[i] != NULL)
-			free(SoundBuffer[i]);
+    for(int32_t i = 0; i < Size(); i++) {
+        if(SoundBuffer[i] != NULL)
+            free(SoundBuffer[i]);
 
-		SoundBuffer[i] = (u8 *) memalign(32, ALIGN32(BufferBlockSize));
-		BufferSize[i] = 0;
-		BufferReady[i] = false;
-	}
+        SoundBuffer[i] = (uint8_t *) memalign(32, ALIGN32(BufferBlockSize));
+        BufferSize[i] = 0;
+        BufferReady[i] = false;
+    }
 }
 
-void BufferCircle::Resize(s32 size)
-{
-	while(size < Size())
-		RemoveBuffer(Size()-1);
+void BufferCircle::Resize(int32_t size) {
+    while(size < Size())
+        RemoveBuffer(Size()-1);
 
-	s32 oldSize = Size();
+    int32_t oldSize = Size();
 
-	SoundBuffer.resize(size);
-	BufferSize.resize(size);
-	BufferReady.resize(size);
+    SoundBuffer.resize(size);
+    BufferSize.resize(size);
+    BufferReady.resize(size);
 
-	for(s32 i = oldSize; i < Size(); i++)
-	{
-		if(BufferBlockSize > 0)
-			SoundBuffer[i] = (u8 *) memalign(32, ALIGN32(BufferBlockSize));
-		else
-			SoundBuffer[i] = NULL;
-		BufferSize[i] = 0;
-		BufferReady[i] = false;
-	}
+    for(int32_t i = oldSize; i < Size(); i++) {
+        if(BufferBlockSize > 0)
+            SoundBuffer[i] = (uint8_t *) memalign(32, ALIGN32(BufferBlockSize));
+        else
+            SoundBuffer[i] = NULL;
+        BufferSize[i] = 0;
+        BufferReady[i] = false;
+    }
 }
 
-void BufferCircle::RemoveBuffer(s32 pos)
-{
-	if(!Valid(pos))
-		return;
+void BufferCircle::RemoveBuffer(int32_t pos) {
+    if(!Valid(pos))
+        return;
 
-	if(SoundBuffer[pos] != NULL)
-		free(SoundBuffer[pos]);
+    if(SoundBuffer[pos] != NULL)
+        free(SoundBuffer[pos]);
 
-	SoundBuffer.erase(SoundBuffer.begin()+pos);
-	BufferSize.erase(BufferSize.begin()+pos);
-	BufferReady.erase(BufferReady.begin()+pos);
+    SoundBuffer.erase(SoundBuffer.begin()+pos);
+    BufferSize.erase(BufferSize.begin()+pos);
+    BufferReady.erase(BufferReady.begin()+pos);
 }
 
-void BufferCircle::ClearBuffer()
-{
-	for(s32 i = 0; i < Size(); i++)
-	{
-		BufferSize[i] = 0;
-		BufferReady[i] = false;
-	}
-	which = 0;
+void BufferCircle::ClearBuffer() {
+    for(int32_t i = 0; i < Size(); i++) {
+        BufferSize[i] = 0;
+        BufferReady[i] = false;
+    }
+    which = 0;
 }
 
-void BufferCircle::FreeBuffer()
-{
-	for(s32 i = 0; i < Size(); i++)
-	{
-		if(SoundBuffer[i] != NULL)
-			free(SoundBuffer[i]);
+void BufferCircle::FreeBuffer() {
+    for(int32_t i = 0; i < Size(); i++) {
+        if(SoundBuffer[i] != NULL)
+            free(SoundBuffer[i]);
 
-		SoundBuffer[i] = NULL;
-		BufferSize[i] = 0;
-		BufferReady[i] = false;
-	}
+        SoundBuffer[i] = NULL;
+        BufferSize[i] = 0;
+        BufferReady[i] = false;
+    }
 }
 
-void BufferCircle::LoadNext()
-{
-	BufferReady[which] = false;
-	BufferSize[which] = 0;
+void BufferCircle::LoadNext() {
+    BufferReady[which] = false;
+    BufferSize[which] = 0;
 
-	which = Next();
+    which = Next();
 }
 
-void BufferCircle::SetBufferReady(s32 pos, bool state)
-{
-	if(!Valid(pos))
-		return;
+void BufferCircle::SetBufferReady(int32_t pos, bool state) {
+    if(!Valid(pos))
+        return;
 
-	BufferReady[pos] = state;
+    BufferReady[pos] = state;
 }
 
-void BufferCircle::SetBufferSize(s32 pos, s32 size)
-{
-	if(!Valid(pos))
-		return;
+void BufferCircle::SetBufferSize(int32_t pos, int32_t size) {
+    if(!Valid(pos))
+        return;
 
-	BufferSize[pos] = size;
+    BufferSize[pos] = size;
 }

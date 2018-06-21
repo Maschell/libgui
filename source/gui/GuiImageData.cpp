@@ -16,52 +16,47 @@
  ****************************************************************************/
 #include <malloc.h>
 #include <string.h>
-#include "GuiImageData.h"
+#include <stdint.h>
+#include <gui/GuiImageData.h>
 #include <system/memory.h>
 /**
  * Constructor for the GuiImageData class.
  */
-GuiImageData::GuiImageData()
-{
+GuiImageData::GuiImageData() {
     texture = NULL;
     sampler = NULL;
-	memoryType = eMemTypeMEM2;
+    memoryType = eMemTypeMEM2;
 }
 
 /**
  * Constructor for the GuiImageData class.
  */
-GuiImageData::GuiImageData(const u8 * img, s32 imgSize, s32 textureClamp, s32 textureFormat)
-{
+GuiImageData::GuiImageData(const uint8_t * img, int32_t imgSize, GX2TexClampMode textureClamp, GX2SurfaceFormat textureFormat) {
     texture = NULL;
     sampler = NULL;
-	loadImage(img, imgSize, textureClamp, textureFormat);
+    loadImage(img, imgSize, textureClamp, textureFormat);
 }
 
 /**
  * Destructor for the GuiImageData class.
  */
-GuiImageData::~GuiImageData()
-{
+GuiImageData::~GuiImageData() {
     releaseData();
 }
 
-void GuiImageData::releaseData(void)
-{
+void GuiImageData::releaseData(void) {
     if(texture) {
-        if(texture->surface.image_data)
-        {
-            switch(memoryType)
-            {
+        if(texture->surface.image) {
+            switch(memoryType) {
             default:
             case eMemTypeMEM2:
-                free(texture->surface.image_data);
+                free(texture->surface.image);
                 break;
             case eMemTypeMEM1:
-                MEM1_free(texture->surface.image_data);
+                MEM1_free(texture->surface.image);
                 break;
             case eMemTypeMEMBucket:
-                MEMBucket_free(texture->surface.image_data);
+                MEMBucket_free(texture->surface.image);
                 break;
             }
         }
@@ -74,50 +69,43 @@ void GuiImageData::releaseData(void)
     }
 }
 
-void GuiImageData::loadImage(const u8 *img, s32 imgSize, s32 textureClamp, s32 textureFormat)
-{
-	if(!img || (imgSize < 8))
-		return;
+void GuiImageData::loadImage(const uint8_t *img, int32_t imgSize, GX2TexClampMode textureClamp, GX2SurfaceFormat textureFormat) {
+    if(!img || (imgSize < 8))
+        return;
 
-	releaseData();
-	gdImagePtr gdImg = 0;
+    releaseData();
+    gdImagePtr gdImg = 0;
 
-	if (img[0] == 0xFF && img[1] == 0xD8)
-	{
-		//! not needed for now therefore comment out to safe ELF size
-		//! if needed uncomment, adds 200 kb to the ELF size
-		// IMAGE_JPEG
-		gdImg = gdImageCreateFromJpegPtr(imgSize, (u8*) img);
-	}
-	else if (img[0] == 'B' && img[1] == 'M')
-	{
-		// IMAGE_BMP
-		gdImg = gdImageCreateFromBmpPtr(imgSize, (u8*) img);
-	}
-	else if (img[0] == 0x89 && img[1] == 'P' && img[2] == 'N' && img[3] == 'G')
-	{
-		// IMAGE_PNG
-		gdImg = gdImageCreateFromPngPtr(imgSize, (u8*) img);
-	}
-	//!This must be last since it can also intefere with outher formats
-	else if(img[0] == 0x00)
-	{
-		// Try loading TGA image
-		gdImg = gdImageCreateFromTgaPtr(imgSize, (u8*) img);
-	}
+    if (img[0] == 0xFF && img[1] == 0xD8) {
+        //! not needed for now therefore comment out to safe ELF size
+        //! if needed uncomment, adds 200 kb to the ELF size
+        // IMAGE_JPEG
+        //gdImg = gdImageCreateFromJpegPtr(imgSize, (uint8_t*) img);
+    } else if (img[0] == 'B' && img[1] == 'M') {
+        // IMAGE_BMP
+        //gdImg = gdImageCreateFromBmpPtr(imgSize, (uint8_t*) img);
+    } else if (img[0] == 0x89 && img[1] == 'P' && img[2] == 'N' && img[3] == 'G') {
+        // IMAGE_PNG
+        gdImg = gdImageCreateFromPngPtr(imgSize, (uint8_t*) img);
+    }
+    //!This must be last since it can also intefere with outher formats
+    else if(img[0] == 0x00) {
+        // Try loading TGA image
+        //gdImg = gdImageCreateFromTgaPtr(imgSize, (uint8_t*) img);
+    }
 
-	if(gdImg == 0)
-		return;
+    if(gdImg == 0)
+        return;
 
-	u32 width = (gdImageSX(gdImg));
-	u32 height = (gdImageSY(gdImg));
+    uint32_t width = (gdImageSX(gdImg));
+    uint32_t height = (gdImageSY(gdImg));
 
     //! Initialize texture
     texture = new GX2Texture;
-    GX2InitTexture(texture, width,  height, 1, 0, textureFormat, GX2_SURFACE_DIM_2D, GX2_TILE_MODE_LINEAR_ALIGNED);
+    GX2InitTexture(texture, width,  height, 1, 0, textureFormat, GX2_SURFACE_DIM_TEXTURE_2D, GX2_TILE_MODE_LINEAR_ALIGNED);
 
     //! if this fails something went horribly wrong
-    if(texture->surface.image_size == 0) {
+    if(texture->surface.imageSize == 0) {
         delete texture;
         texture = NULL;
         gdImageDestroy(gdImg);
@@ -125,63 +113,59 @@ void GuiImageData::loadImage(const u8 *img, s32 imgSize, s32 textureClamp, s32 t
     }
 
     //! allocate memory for the surface
-	memoryType = eMemTypeMEM2;
-    texture->surface.image_data = memalign(texture->surface.align, texture->surface.image_size);
+    memoryType = eMemTypeMEM2;
+    texture->surface.image = memalign(texture->surface.alignment, texture->surface.imageSize);
     //! try MEM1 on failure
-    if(!texture->surface.image_data) {
+    if(!texture->surface.image) {
         memoryType = eMemTypeMEM1;
-        texture->surface.image_data = MEM1_alloc(texture->surface.image_size, texture->surface.align);
+        texture->surface.image = MEM1_alloc(texture->surface.imageSize, texture->surface.alignment);
     }
     //! try MEM bucket on failure
-    if(!texture->surface.image_data) {
+    if(!texture->surface.image) {
         memoryType = eMemTypeMEMBucket;
-        texture->surface.image_data = MEMBucket_alloc(texture->surface.image_size, texture->surface.align);
+        texture->surface.image = MEMBucket_alloc(texture->surface.imageSize, texture->surface.alignment);
     }
     //! check if memory is available for image
-    if(!texture->surface.image_data) {
+    if(!texture->surface.image) {
         gdImageDestroy(gdImg);
         delete texture;
         texture = NULL;
         return;
     }
     //! set mip map data pointer
-    texture->surface.mip_data = NULL;
+    texture->surface.mipmaps = NULL;
     //! convert image to texture
-    switch(textureFormat)
-    {
+    switch(textureFormat) {
     default:
-    case GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM:
-        gdImageToUnormR8G8B8A8(gdImg, (u32*)texture->surface.image_data, texture->surface.width, texture->surface.height, texture->surface.pitch);
+    case GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8:
+        gdImageToUnormR8G8B8A8(gdImg, (uint32_t*)texture->surface.image, texture->surface.width, texture->surface.height, texture->surface.pitch);
         break;
-    case GX2_SURFACE_FORMAT_TCS_R5_G6_B5_UNORM:
-        gdImageToUnormR5G6B5(gdImg, (u16*)texture->surface.image_data, texture->surface.width, texture->surface.height, texture->surface.pitch);
+    case GX2_SURFACE_FORMAT_UNORM_R5_G6_B5:
+        gdImageToUnormR5G6B5(gdImg, (uint16_t*)texture->surface.image, texture->surface.width, texture->surface.height, texture->surface.pitch);
         break;
     }
 
-	//! free memory of image as its not needed anymore
-	gdImageDestroy(gdImg);
+    //! free memory of image as its not needed anymore
+    gdImageDestroy(gdImg);
 
-	//! invalidate the memory
-    GX2Invalidate(GX2_INVALIDATE_CPU_TEXTURE, texture->surface.image_data, texture->surface.image_size);
+    //! invalidate the memory
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, texture->surface.image, texture->surface.imageSize);
     //! initialize the sampler
     sampler = new GX2Sampler;
-    GX2InitSampler(sampler, textureClamp, GX2_TEX_XY_FILTER_BILINEAR);
+    GX2InitSampler(sampler, textureClamp, GX2_TEX_XY_FILTER_MODE_LINEAR);
 }
 
-void GuiImageData::gdImageToUnormR8G8B8A8(gdImagePtr gdImg, u32 *imgBuffer, u32 width, u32 height, u32 pitch)
-{
-    for(u32 y = 0; y < height; ++y)
-    {
-        for(u32 x = 0; x < width; ++x)
-        {
-			u32 pixel = gdImageGetPixel(gdImg, x, y);
+void GuiImageData::gdImageToUnormR8G8B8A8(gdImagePtr gdImg, uint32_t *imgBuffer, uint32_t width, uint32_t height, uint32_t pitch) {
+    for(uint32_t y = 0; y < height; ++y) {
+        for(uint32_t x = 0; x < width; ++x) {
+            uint32_t pixel = gdImageGetPixel(gdImg, x, y);
 
-			u8 a = 254 - 2*((u8)gdImageAlpha(gdImg, pixel));
-			if(a == 254) a++;
+            uint8_t a = 254 - 2*((uint8_t)gdImageAlpha(gdImg, pixel));
+            if(a == 254) a++;
 
-            u8 r = gdImageRed(gdImg, pixel);
-            u8 g = gdImageGreen(gdImg, pixel);
-            u8 b = gdImageBlue(gdImg, pixel);
+            uint8_t r = gdImageRed(gdImg, pixel);
+            uint8_t g = gdImageGreen(gdImg, pixel);
+            uint8_t b = gdImageBlue(gdImg, pixel);
 
             imgBuffer[y * pitch + x] = (r << 24) | (g << 16) | (b << 8) | (a);
         }
@@ -189,17 +173,14 @@ void GuiImageData::gdImageToUnormR8G8B8A8(gdImagePtr gdImg, u32 *imgBuffer, u32 
 }
 
 //! TODO: figure out why this seems to not work correct yet
-void GuiImageData::gdImageToUnormR5G6B5(gdImagePtr gdImg, u16 *imgBuffer, u32 width, u32 height, u32 pitch)
-{
-    for(u32 y = 0; y < height; ++y)
-    {
-        for(u32 x = 0; x < width; ++x)
-        {
-			u32 pixel = gdImageGetPixel(gdImg, x, y);
+void GuiImageData::gdImageToUnormR5G6B5(gdImagePtr gdImg, uint16_t *imgBuffer, uint32_t width, uint32_t height, uint32_t pitch) {
+    for(uint32_t y = 0; y < height; ++y) {
+        for(uint32_t x = 0; x < width; ++x) {
+            uint32_t pixel = gdImageGetPixel(gdImg, x, y);
 
-            u8 r = gdImageRed(gdImg, pixel);
-            u8 g = gdImageGreen(gdImg, pixel);
-            u8 b = gdImageBlue(gdImg, pixel);
+            uint8_t r = gdImageRed(gdImg, pixel);
+            uint8_t g = gdImageGreen(gdImg, pixel);
+            uint8_t b = gdImageBlue(gdImg, pixel);
 
             imgBuffer[y * pitch + x] = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
         }

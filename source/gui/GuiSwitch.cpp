@@ -14,57 +14,63 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiSwitch.h"
-#include "GuiImage.h"
-#include "GuiImageData.h"
+#include <gui/GuiSwitch.h>
+#include <gui/GuiImage.h>
+#include <gui/GuiImageData.h>
 #include <utils/logger.h>
 /**
  * Constructor for the GuiSwitch class.
  */
 
-GuiSwitch::GuiSwitch(GuiImage * background,bool checked,f32 w, f32 h)
- : GuiToggle(checked,w,h){
+GuiSwitch::GuiSwitch(GuiImage * background,bool checked,float w, float h)
+    : GuiToggle(checked,w,h) {
     setImageBackground(background);
 }
 /**
  * Destructor for the GuiSwitch class.
  */
-GuiSwitch::~GuiSwitch(){
+GuiSwitch::~GuiSwitch() {
 
 }
 
-void GuiSwitch::setImageBackground(GuiImage* img){
-	backgroundImg = img;
-	if(img){ img->setParent(this); }
-	setImage(img);
+void GuiSwitch::setImageBackground(GuiImage* img) {
+    backgroundImg = img;
+    if(img) {
+        img->setParent(this);
+    }
+    setImage(img);
 }
 
-void GuiSwitch::setImageOn(GuiImage* img){
-	onImg = img;
-	if(img){
+void GuiSwitch::setImageOn(GuiImage* img) {
+    onImg = img;
+    if(img) {
         img->setParent(this);
         img->setAlignment(ALIGN_RIGHT);
-	}
+    }
 }
 
-void GuiSwitch::setImageOff(GuiImage* img){
-	offImg = img;
-	if(img){
+void GuiSwitch::setImageOff(GuiImage* img) {
+    offImg = img;
+    if(img) {
         img->setParent(this);
         img->setAlignment(ALIGN_LEFT);
-	}
+    }
 }
 
-void GuiSwitch::setImageHighlighted(GuiImage* img){
+void GuiSwitch::setImageHighlighted(GuiImage* img) {
     highlightedImg = img;
-	setIconOver(img);
+    setIconOver(img);
 }
 
-void GuiSwitch::draw(CVideo *v){
+void GuiSwitch::draw(CVideo *v) {
     GuiToggle::draw(v);
-    if(getValue()){
-        if(onImg != NULL){ onImg->draw(v); }
-    }else{
-        if(offImg != NULL){ offImg->draw(v); }
+    if(getValue()) {
+        if(onImg != NULL) {
+            onImg->draw(v);
+        }
+    } else {
+        if(offImg != NULL) {
+            offImg->draw(v);
+        }
     }
 }

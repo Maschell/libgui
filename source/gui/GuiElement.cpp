@@ -14,50 +14,49 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiElement.h"
+#include <gui/GuiElement.h>
 
 //! TODO remove this!
-static s32 screenwidth = 1280;
-static s32 screenheight = 720;
+static int32_t screenwidth = 1280;
+static int32_t screenheight = 720;
 
 /**
  * Constructor for the Object class.
  */
-GuiElement::GuiElement()
-{
-	xoffset = 0.0f;
-	yoffset = 0.0f;
-	zoffset = 0.0f;
-	width = 0.0f;
-	height = 0.0f;
-	alpha = 1.0f;
-	scaleX = 1.0f;
-	scaleY = 1.0f;
-	scaleZ = 1.0f;
-	for(s32 i = 0; i < 4; i++)
+GuiElement::GuiElement() {
+    xoffset = 0.0f;
+    yoffset = 0.0f;
+    zoffset = 0.0f;
+    width = 0.0f;
+    height = 0.0f;
+    alpha = 1.0f;
+    scaleX = 1.0f;
+    scaleY = 1.0f;
+    scaleZ = 1.0f;
+    for(int32_t i = 0; i < 4; i++)
         state[i] = STATE_DEFAULT;
-	stateChan = -1;
-	parentElement = NULL;
-	rumble = true;
-	selectable = false;
-	clickable = false;
-	holdable = false;
-	drawOverOnlyWhenSelected = false;
-	visible = true;
-	yoffsetDyn = 0;
-	xoffsetDyn = 0;
-	alphaDyn = -1;
-	scaleDyn = 1;
-	effects = EFFECT_NONE;
-	effectAmount = 0;
-	effectTarget = 0;
-	effectsOver = EFFECT_NONE;
-	effectAmountOver = 0;
-	effectTargetOver = 0;
-	angle = 0.0f;
+    stateChan = -1;
+    parentElement = NULL;
+    rumble = true;
+    selectable = false;
+    clickable = false;
+    holdable = false;
+    drawOverOnlyWhenSelected = false;
+    visible = true;
+    yoffsetDyn = 0;
+    xoffsetDyn = 0;
+    alphaDyn = -1;
+    scaleDyn = 1;
+    effects = EFFECT_NONE;
+    effectAmount = 0;
+    effectTarget = 0;
+    effectsOver = EFFECT_NONE;
+    effectAmountOver = 0;
+    effectTargetOver = 0;
+    angle = 0.0f;
 
-	// default alignment - align to top left
-	alignment = (ALIGN_CENTER | ALIGN_MIDDLE);
+    // default alignment - align to top left
+    alignment = (ALIGN_CENTER | ALIGN_MIDDLE);
 }
 
 /**
@@ -65,34 +64,29 @@ GuiElement::GuiElement()
  * @see SetLeft()
  * @return Left position in pixel.
  */
-f32 GuiElement::getLeft()
-{
-	f32 pWidth = 0;
-	f32 pLeft = 0;
-	f32 pScaleX = 1.0f;
+float GuiElement::getLeft() {
+    float pWidth = 0;
+    float pLeft = 0;
+    float pScaleX = 1.0f;
 
-	if(parentElement)
-	{
-		pWidth = parentElement->getWidth();
-		pLeft = parentElement->getLeft();
-		pScaleX = parentElement->getScaleX();
-	}
+    if(parentElement) {
+        pWidth = parentElement->getWidth();
+        pLeft = parentElement->getLeft();
+        pScaleX = parentElement->getScaleX();
+    }
 
-	pLeft += xoffsetDyn;
+    pLeft += xoffsetDyn;
 
-	f32 x = pLeft;
+    float x = pLeft;
 
     //! TODO: the conversion from int to float and back to int is bad for performance, change that
-	if(alignment & ALIGN_CENTER)
-	{
-		x = pLeft + pWidth * 0.5f * pScaleX - width * 0.5f * getScaleX();
-	}
-	else if(alignment & ALIGN_RIGHT)
-	{
-		x = pLeft + pWidth * pScaleX - width * getScaleX();
-	}
+    if(alignment & ALIGN_CENTER) {
+        x = pLeft + pWidth * 0.5f * pScaleX - width * 0.5f * getScaleX();
+    } else if(alignment & ALIGN_RIGHT) {
+        x = pLeft + pWidth * pScaleX - width * getScaleX();
+    }
 
-	return x + xoffset;
+    return x + xoffset;
 }
 
 /**
@@ -100,244 +94,190 @@ f32 GuiElement::getLeft()
  * @see SetTop()
  * @return Top position in pixel.
  */
-f32 GuiElement::getTop()
-{
-	f32 pHeight = 0;
-	f32 pTop = 0;
-	f32 pScaleY = 1.0f;
+float GuiElement::getTop() {
+    float pHeight = 0;
+    float pTop = 0;
+    float pScaleY = 1.0f;
 
-	if(parentElement)
-	{
-		pHeight = parentElement->getHeight();
-		pTop = parentElement->getTop();
-		pScaleY = parentElement->getScaleY();
-	}
+    if(parentElement) {
+        pHeight = parentElement->getHeight();
+        pTop = parentElement->getTop();
+        pScaleY = parentElement->getScaleY();
+    }
 
-	pTop += yoffsetDyn;
+    pTop += yoffsetDyn;
 
-	f32 y = pTop;
+    float y = pTop;
 
     //! TODO: the conversion from int to float and back to int is bad for performance, change that
-	if(alignment & ALIGN_MIDDLE)
-	{
-		y = pTop + pHeight * 0.5f * pScaleY - getHeight() * 0.5f * getScaleY();
-	}
-	else if(alignment & ALIGN_BOTTOM)
-	{
-		y = pTop + pHeight * pScaleY - getHeight() * getScaleY();
-	}
+    if(alignment & ALIGN_MIDDLE) {
+        y = pTop + pHeight * 0.5f * pScaleY - getHeight() * 0.5f * getScaleY();
+    } else if(alignment & ALIGN_BOTTOM) {
+        y = pTop + pHeight * pScaleY - getHeight() * getScaleY();
+    }
 
-	return y + yoffset;
+    return y + yoffset;
 }
 
-void GuiElement::setEffect(s32 eff, s32 amount, s32 target)
-{
-	if(eff & EFFECT_SLIDE_IN)
-	{
-		// these calculations overcompensate a little
-		if(eff & EFFECT_SLIDE_TOP)
-		{
-			if(eff & EFFECT_SLIDE_FROM)
-				yoffsetDyn = (s32) -getHeight()*scaleY;
-			else
-				yoffsetDyn = -screenheight;
-		}
-		else if(eff & EFFECT_SLIDE_LEFT)
-		{
-			if(eff & EFFECT_SLIDE_FROM)
-				xoffsetDyn = (s32) -getWidth()*scaleX;
-			else
-				xoffsetDyn = -screenwidth;
-		}
-		else if(eff & EFFECT_SLIDE_BOTTOM)
-		{
-			if(eff & EFFECT_SLIDE_FROM)
-				yoffsetDyn = (s32) getHeight()*scaleY;
-			else
-				yoffsetDyn = screenheight;
-		}
-		else if(eff & EFFECT_SLIDE_RIGHT)
-		{
-			if(eff & EFFECT_SLIDE_FROM)
-				xoffsetDyn = (s32) getWidth()*scaleX;
-			else
-				xoffsetDyn = screenwidth;
-		}
-	}
-	if((eff & EFFECT_FADE) && amount > 0)
-	{
-		alphaDyn = 0;
-	}
-	else if((eff & EFFECT_FADE) && amount < 0)
-	{
-		alphaDyn = alpha;
-	}
-	effects |= eff;
-	effectAmount = amount;
-	effectTarget = target;
+void GuiElement::setEffect(int32_t eff, int32_t amount, int32_t target) {
+    if(eff & EFFECT_SLIDE_IN) {
+        // these calculations overcompensate a little
+        if(eff & EFFECT_SLIDE_TOP) {
+            if(eff & EFFECT_SLIDE_FROM)
+                yoffsetDyn = (int32_t) -getHeight()*scaleY;
+            else
+                yoffsetDyn = -screenheight;
+        } else if(eff & EFFECT_SLIDE_LEFT) {
+            if(eff & EFFECT_SLIDE_FROM)
+                xoffsetDyn = (int32_t) -getWidth()*scaleX;
+            else
+                xoffsetDyn = -screenwidth;
+        } else if(eff & EFFECT_SLIDE_BOTTOM) {
+            if(eff & EFFECT_SLIDE_FROM)
+                yoffsetDyn = (int32_t) getHeight()*scaleY;
+            else
+                yoffsetDyn = screenheight;
+        } else if(eff & EFFECT_SLIDE_RIGHT) {
+            if(eff & EFFECT_SLIDE_FROM)
+                xoffsetDyn = (int32_t) getWidth()*scaleX;
+            else
+                xoffsetDyn = screenwidth;
+        }
+    }
+    if((eff & EFFECT_FADE) && amount > 0) {
+        alphaDyn = 0;
+    } else if((eff & EFFECT_FADE) && amount < 0) {
+        alphaDyn = alpha;
+    }
+    effects |= eff;
+    effectAmount = amount;
+    effectTarget = target;
 }
 
 //!Sets an effect to be enabled on wiimote cursor over
 //!\param e Effect to enable
 //!\param a Amount of the effect (usage varies on effect)
 //!\param t Target amount of the effect (usage varies on effect)
-void GuiElement::setEffectOnOver(s32 e, s32 a, s32 t)
-{
-	effectsOver |= e;
-	effectAmountOver = a;
-	effectTargetOver = t;
+void GuiElement::setEffectOnOver(int32_t e, int32_t a, int32_t t) {
+    effectsOver |= e;
+    effectAmountOver = a;
+    effectTargetOver = t;
 }
 
-void GuiElement::resetEffects()
-{
-	yoffsetDyn = 0;
-	xoffsetDyn = 0;
-	alphaDyn = -1;
-	scaleDyn = 1;
-	effects = EFFECT_NONE;
-	effectAmount = 0;
-	effectTarget = 0;
-	effectsOver = EFFECT_NONE;
-	effectAmountOver = 0;
-	effectTargetOver = 0;
+void GuiElement::resetEffects() {
+    yoffsetDyn = 0;
+    xoffsetDyn = 0;
+    alphaDyn = -1;
+    scaleDyn = 1;
+    effects = EFFECT_NONE;
+    effectAmount = 0;
+    effectTarget = 0;
+    effectsOver = EFFECT_NONE;
+    effectAmountOver = 0;
+    effectTargetOver = 0;
 }
-void GuiElement::updateEffects()
-{
-	if(!this->isVisible() && parentElement)
-		return;
+void GuiElement::updateEffects() {
+    if(!this->isVisible() && parentElement)
+        return;
 
-	if(effects & (EFFECT_SLIDE_IN | EFFECT_SLIDE_OUT | EFFECT_SLIDE_FROM))
-	{
-		if(effects & EFFECT_SLIDE_IN)
-		{
-			if(effects & EFFECT_SLIDE_LEFT)
-			{
-				xoffsetDyn += effectAmount;
+    if(effects & (EFFECT_SLIDE_IN | EFFECT_SLIDE_OUT | EFFECT_SLIDE_FROM)) {
+        if(effects & EFFECT_SLIDE_IN) {
+            if(effects & EFFECT_SLIDE_LEFT) {
+                xoffsetDyn += effectAmount;
 
-				if(xoffsetDyn >= 0)
-				{
-					xoffsetDyn = 0;
-					effects = 0;
+                if(xoffsetDyn >= 0) {
+                    xoffsetDyn = 0;
+                    effects = 0;
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_RIGHT)
-			{
-				xoffsetDyn -= effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_RIGHT) {
+                xoffsetDyn -= effectAmount;
 
-				if(xoffsetDyn <= 0)
-				{
-					xoffsetDyn = 0;
-					effects = 0;
+                if(xoffsetDyn <= 0) {
+                    xoffsetDyn = 0;
+                    effects = 0;
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_TOP)
-			{
-				yoffsetDyn += effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_TOP) {
+                yoffsetDyn += effectAmount;
 
-				if(yoffsetDyn >= 0)
-				{
-					yoffsetDyn = 0;
-					effects = 0;
+                if(yoffsetDyn >= 0) {
+                    yoffsetDyn = 0;
+                    effects = 0;
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_BOTTOM)
-			{
-				yoffsetDyn -= effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_BOTTOM) {
+                yoffsetDyn -= effectAmount;
 
-				if(yoffsetDyn <= 0)
-				{
-					yoffsetDyn = 0;
-					effects = 0;
+                if(yoffsetDyn <= 0) {
+                    yoffsetDyn = 0;
+                    effects = 0;
                     effectFinished(this);
-				}
-			}
-		}
-		else
-		{
-			if(effects & EFFECT_SLIDE_LEFT)
-			{
-				xoffsetDyn -= effectAmount;
+                }
+            }
+        } else {
+            if(effects & EFFECT_SLIDE_LEFT) {
+                xoffsetDyn -= effectAmount;
 
-				if(xoffsetDyn <= -screenwidth) {
-					effects = 0; // shut off effect
+                if(xoffsetDyn <= -screenwidth) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-				else if((effects & EFFECT_SLIDE_FROM) && xoffsetDyn <= -getWidth()) {
-					effects = 0; // shut off effect
+                } else if((effects & EFFECT_SLIDE_FROM) && xoffsetDyn <= -getWidth()) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_RIGHT)
-			{
-				xoffsetDyn += effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_RIGHT) {
+                xoffsetDyn += effectAmount;
 
-				if(xoffsetDyn >= screenwidth) {
-					effects = 0; // shut off effect
+                if(xoffsetDyn >= screenwidth) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-				else if((effects & EFFECT_SLIDE_FROM) && xoffsetDyn >= getWidth()*scaleX) {
-					effects = 0; // shut off effect
+                } else if((effects & EFFECT_SLIDE_FROM) && xoffsetDyn >= getWidth()*scaleX) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_TOP)
-			{
-				yoffsetDyn -= effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_TOP) {
+                yoffsetDyn -= effectAmount;
 
-				if(yoffsetDyn <= -screenheight) {
-					effects = 0; // shut off effect
+                if(yoffsetDyn <= -screenheight) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-				else if((effects & EFFECT_SLIDE_FROM) && yoffsetDyn <= -getHeight()) {
-					effects = 0; // shut off effect
+                } else if((effects & EFFECT_SLIDE_FROM) && yoffsetDyn <= -getHeight()) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-			}
-			else if(effects & EFFECT_SLIDE_BOTTOM)
-			{
-				yoffsetDyn += effectAmount;
+                }
+            } else if(effects & EFFECT_SLIDE_BOTTOM) {
+                yoffsetDyn += effectAmount;
 
-				if(yoffsetDyn >= screenheight) {
-					effects = 0; // shut off effect
+                if(yoffsetDyn >= screenheight) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-				else if((effects & EFFECT_SLIDE_FROM) && yoffsetDyn >= getHeight()) {
-					effects = 0; // shut off effect
+                } else if((effects & EFFECT_SLIDE_FROM) && yoffsetDyn >= getHeight()) {
+                    effects = 0; // shut off effect
                     effectFinished(this);
-				}
-			}
-		}
-	}
-	else if(effects & EFFECT_FADE)
-	{
-		alphaDyn += effectAmount * (1.0f / 255.0f);
+                }
+            }
+        }
+    } else if(effects & EFFECT_FADE) {
+        alphaDyn += effectAmount * (1.0f / 255.0f);
 
-		if(effectAmount < 0 && alphaDyn <= 0)
-		{
-			alphaDyn = 0;
-			effects = 0; // shut off effect
-			effectFinished(this);
-		}
-		else if(effectAmount > 0 && alphaDyn >= alpha)
-		{
-			alphaDyn = alpha;
-			effects = 0; // shut off effect
-			effectFinished(this);
-		}
-	}
-	else if(effects & EFFECT_SCALE)
-	{
-		scaleDyn += effectAmount * 0.01f;
+        if(effectAmount < 0 && alphaDyn <= 0) {
+            alphaDyn = 0;
+            effects = 0; // shut off effect
+            effectFinished(this);
+        } else if(effectAmount > 0 && alphaDyn >= alpha) {
+            alphaDyn = alpha;
+            effects = 0; // shut off effect
+            effectFinished(this);
+        }
+    } else if(effects & EFFECT_SCALE) {
+        scaleDyn += effectAmount * 0.01f;
 
-		if((effectAmount < 0 && scaleDyn <= (effectTarget * 0.01f))
-			|| (effectAmount > 0 && scaleDyn >= (effectTarget * 0.01f)))
-		{
-			scaleDyn = effectTarget * 0.01f;
-			effects = 0; // shut off effect
-			effectFinished(this);
-		}
-	}
+        if((effectAmount < 0 && scaleDyn <= (effectTarget * 0.01f))
+                || (effectAmount > 0 && scaleDyn >= (effectTarget * 0.01f))) {
+            scaleDyn = effectTarget * 0.01f;
+            effects = 0; // shut off effect
+            effectFinished(this);
+        }
+    }
 }

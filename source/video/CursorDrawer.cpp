@@ -18,58 +18,54 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <dynamic_libs/gx2_functions.h>
-#include "video/shaders/ColorShader.h"
-#include "video/shaders/FXAAShader.h"
-#include "video/shaders/Shader3D.h"
-#include "video/shaders/ShaderFractalColor.h"
-#include "video/shaders/Texture2DShader.h"
-#include "CursorDrawer.h"
+#include <video/shaders/ColorShader.h>
+#include <video/shaders/FXAAShader.h>
+#include <video/shaders/Shader3D.h>
+#include <video/shaders/ShaderFractalColor.h>
+#include <video/shaders/Texture2DShader.h>
+#include <video/CursorDrawer.h>
 
 CursorDrawer *CursorDrawer::instance = NULL;
 
-CursorDrawer::CursorDrawer()
-{
+CursorDrawer::CursorDrawer() {
     init_colorVtxs();
 }
 
-CursorDrawer::~CursorDrawer()
-{
+CursorDrawer::~CursorDrawer() {
     //! destroy shaders
     ColorShader::destroyInstance();
     FXAAShader::destroyInstance();
     Shader3D::destroyInstance();
     ShaderFractalColor::destroyInstance();
     Texture2DShader::destroyInstance();
-    if(this->colorVtxs){
+    if(this->colorVtxs) {
         free(this->colorVtxs);
         this->colorVtxs = NULL;
     }
 }
 
-void CursorDrawer::init_colorVtxs(){
-    if(!this->colorVtxs){
-        this->colorVtxs = (u8*)memalign(0x40, sizeof(u8) * 16);
+void CursorDrawer::init_colorVtxs() {
+    if(!this->colorVtxs) {
+        this->colorVtxs = (uint8_t*)memalign(0x40, sizeof(uint8_t) * 16);
         if(this->colorVtxs == NULL) return;
 
     }
-    memset(this->colorVtxs,0xFF,16*sizeof(u8));
+    memset(this->colorVtxs,0xFF,16*sizeof(uint8_t));
 
-    GX2Invalidate(GX2_INVALIDATE_CPU_ATTRIB_BUFFER, this->colorVtxs, 16 * sizeof(u8));
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, this->colorVtxs, 16 * sizeof(uint8_t));
 }
 
 // Could be improved. It be more generic.
-void CursorDrawer::draw_Cursor(f32 x,f32 y)
-{
-    if(this->colorVtxs == NULL){
+void CursorDrawer::draw_Cursor(float x,float y) {
+    if(this->colorVtxs == NULL) {
         init_colorVtxs();
         return;
     }
 
-    f32 widthScaleFactor = 1.0f / (f32)1280;
-    f32 heightScaleFactor = 1.0f / (f32)720;
+    float widthScaleFactor = 1.0f / (float)1280;
+    float heightScaleFactor = 1.0f / (float)720;
 
-    s32 width = 20;
+    int32_t width = 20;
 
     glm::vec3 positionOffsets = glm::vec3(0.0f);
 
@@ -84,5 +80,5 @@ void CursorDrawer::draw_Cursor(f32 x,f32 y)
     ColorShader::instance()->setOffset(positionOffsets);
     ColorShader::instance()->setScale(scale);
     ColorShader::instance()->setColorIntensity(glm::vec4(1.0f));
-    ColorShader::instance()->draw(GX2_PRIMITIVE_QUADS, 4);
+    ColorShader::instance()->draw(GX2_PRIMITIVE_MODE_QUADS, 4);
 }

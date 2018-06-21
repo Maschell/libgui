@@ -16,10 +16,9 @@
  ****************************************************************************/
 #include <malloc.h>
 #include <string.h>
-#include "FXAAShader.h"
+#include <video/shaders/FXAAShader.h>
 
-static const u32 cpVertexShaderProgram[] =
-{
+static const uint32_t cpVertexShaderProgram[] = {
     0x00000000,0x00008009,0x20000000,0x000004a0,
     0x3ca00000,0x88060094,0x00400000,0xff0f2094,
     0x00000000,0x00000000,0x00000000,0x00000000,
@@ -40,7 +39,7 @@ static const u32 cpVertexShaderProgram[] =
     0xc1a229f5,0xd0eddc33,0x426618fd,0x8509cfe7
 };
 
-static const u32 cpVertexShaderRegs[] = {
+static const uint32_t cpVertexShaderRegs[] = {
     0x00000102,0x00000000,0x00000000,0x00000001,
     0xffffffff,0xffffffff,0xffffffff,0xffffffff,
     0xffffffff,0xffffffff,0xffffffff,0xffffffff,
@@ -56,8 +55,7 @@ static const u32 cpVertexShaderRegs[] = {
     0x000000ff,0x00000000,0x0000000e,0x00000010
 };
 
-static const u32 cpPixelShaderProgram[] =
-{
+static const uint32_t cpPixelShaderProgram[] = {
     0x20000000,0x00003ca0,0xa0000000,0x000c8080,
     0x30000000,0x000010a1,0xa8000000,0x0010c080,
     0x75000000,0x000088a0,0x00800100,0x88062094,
@@ -149,7 +147,7 @@ static const u32 cpPixelShaderProgram[] =
     0x10000100,0x01101df0,0x00008010,0xecdfea0d,
     0xfe2e963a,0x0269a9a3,0x38f88096,0x400cf48b
 };
-static const u32 cpPixelShaderRegs[] = {
+static const uint32_t cpPixelShaderRegs[] = {
     0x00000007,0x00000002,0x04000101,0x00000000,
     0x00000001,0x00000100,0x00000000,0x00000000,
     0x00000000,0x00000000,0x00000000,0x00000000,
@@ -166,61 +164,77 @@ static const u32 cpPixelShaderRegs[] = {
 FXAAShader * FXAAShader::shaderInstance = NULL;
 
 FXAAShader::FXAAShader()
-    : vertexShader(cuAttributeCount)
-{
+    : vertexShader(cuAttributeCount) {
     //! create pixel shader
     pixelShader.setProgram(cpPixelShaderProgram, sizeof(cpPixelShaderProgram), cpPixelShaderRegs, sizeof(cpPixelShaderRegs));
 
     resolutionLocation = 0;
-    pixelShader.addUniformVar((GX2UniformVar){ "unf_resolution", GX2_VAR_TYPE_VEC2, 1, resolutionLocation, 0xffffffff });
+    pixelShader.addUniformVar((GX2UniformVar) {
+        "unf_resolution", GX2_SHADER_VAR_TYPE_FLOAT2, 1, resolutionLocation, -1
+    });
 
     samplerLocation = 0;
-    pixelShader.addSamplerVar((GX2SamplerVar){ "sampl_texture", GX2_SAMPLER_TYPE_2D, samplerLocation });
+    pixelShader.addSamplerVar((GX2SamplerVar) {
+        "sampl_texture", GX2_SAMPLER_VAR_TYPE_SAMPLER_2D, samplerLocation
+    });
 
     //! create vertex shader
     vertexShader.setProgram(cpVertexShaderProgram, sizeof(cpVertexShaderProgram), cpVertexShaderRegs, sizeof(cpVertexShaderRegs));
 
     positionLocation = 0;
     texCoordLocation = 1;
-    vertexShader.addAttribVar((GX2AttribVar){ "attr_position", GX2_VAR_TYPE_VEC3, 0, positionLocation });
-    vertexShader.addAttribVar((GX2AttribVar){ "attr_texture_coord", GX2_VAR_TYPE_VEC2, 0, texCoordLocation });
+    vertexShader.addAttribVar((GX2AttribVar) {
+        "attr_position", GX2_SHADER_VAR_TYPE_FLOAT3, 0, positionLocation
+    });
+    vertexShader.addAttribVar((GX2AttribVar) {
+        "attr_texture_coord", GX2_SHADER_VAR_TYPE_FLOAT2, 0, texCoordLocation
+    });
 
     //! setup attribute streams
-    GX2InitAttribStream(vertexShader.getAttributeBuffer(0), positionLocation, 0, 0, GX2_ATTRIB_FORMAT_32_32_32_FLOAT);
-    GX2InitAttribStream(vertexShader.getAttributeBuffer(1), texCoordLocation, 1, 0, GX2_ATTRIB_FORMAT_32_32_FLOAT);
+    GX2InitAttribStream(vertexShader.getAttributeBuffer(0), positionLocation, 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32);
+    GX2InitAttribStream(vertexShader.getAttributeBuffer(1), texCoordLocation, 1, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32);
 
     //! create fetch shader
     fetchShader = new FetchShader(vertexShader.getAttributeBuffer(), vertexShader.getAttributesCount());
 
     //! model vertex has to be align and cannot be in unknown regions for GX2 like 0xBCAE1000
-    posVtxs = (f32*)memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ciPositionVtxsSize);
-    texCoords = (f32*)memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ciTexCoordsVtxsSize);
+    posVtxs = (float*)memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ciPositionVtxsSize);
+    texCoords = (float*)memalign(GX2_VERTEX_BUFFER_ALIGNMENT, ciTexCoordsVtxsSize);
 
     //! position vertex structure and texture coordinate vertex structure
-    s32 i = 0;
-    posVtxs[i++] = -1.0f; posVtxs[i++] = -1.0f; posVtxs[i++] = 0.0f;
-    posVtxs[i++] =  1.0f; posVtxs[i++] = -1.0f; posVtxs[i++] = 0.0f;
-    posVtxs[i++] =  1.0f; posVtxs[i++] =  1.0f; posVtxs[i++] = 0.0f;
-    posVtxs[i++] = -1.0f; posVtxs[i++] =  1.0f; posVtxs[i++] = 0.0f;
-    GX2Invalidate(GX2_INVALIDATE_CPU_ATTRIB_BUFFER, posVtxs, ciPositionVtxsSize);
+    int32_t i = 0;
+    posVtxs[i++] = -1.0f;
+    posVtxs[i++] = -1.0f;
+    posVtxs[i++] = 0.0f;
+    posVtxs[i++] =  1.0f;
+    posVtxs[i++] = -1.0f;
+    posVtxs[i++] = 0.0f;
+    posVtxs[i++] =  1.0f;
+    posVtxs[i++] =  1.0f;
+    posVtxs[i++] = 0.0f;
+    posVtxs[i++] = -1.0f;
+    posVtxs[i++] =  1.0f;
+    posVtxs[i++] = 0.0f;
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, posVtxs, ciPositionVtxsSize);
 
     i = 0;
-    texCoords[i++] = 0.0f; texCoords[i++] = 1.0f;
-    texCoords[i++] = 1.0f; texCoords[i++] = 1.0f;
-    texCoords[i++] = 1.0f; texCoords[i++] = 0.0f;
-    texCoords[i++] = 0.0f; texCoords[i++] = 0.0f;
-    GX2Invalidate(GX2_INVALIDATE_CPU_ATTRIB_BUFFER, texCoords, ciTexCoordsVtxsSize);
+    texCoords[i++] = 0.0f;
+    texCoords[i++] = 1.0f;
+    texCoords[i++] = 1.0f;
+    texCoords[i++] = 1.0f;
+    texCoords[i++] = 1.0f;
+    texCoords[i++] = 0.0f;
+    texCoords[i++] = 0.0f;
+    texCoords[i++] = 0.0f;
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU_ATTRIBUTE_BUFFER, texCoords, ciTexCoordsVtxsSize);
 }
 
-FXAAShader::~FXAAShader()
-{
-    if(posVtxs)
-    {
+FXAAShader::~FXAAShader() {
+    if(posVtxs) {
         free(posVtxs);
         posVtxs = NULL;
     }
-    if(texCoords)
-    {
+    if(texCoords) {
         free(texCoords);
         texCoords = NULL;
     }

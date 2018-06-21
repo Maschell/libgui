@@ -29,8 +29,9 @@
 #include <unistd.h>
 #include <malloc.h>
 #include <math.h>
-#include <dynamic_libs/os_functions.h>
-#include "Mp3Decoder.hpp"
+#include <coreinit/time.h>
+#include <coreinit/thread.h>
+#include <sounds/Mp3Decoder.hpp>
 
 Mp3Decoder::Mp3Decoder(const char * filepath)
 	: SoundDecoder(filepath)
@@ -48,7 +49,7 @@ Mp3Decoder::Mp3Decoder(const char * filepath)
 	OpenFile();
 }
 
-Mp3Decoder::Mp3Decoder(const u8 * snd, s32 len)
+Mp3Decoder::Mp3Decoder(const uint8_t * snd, int32_t len)
 	: SoundDecoder(snd, len)
 {
 	SoundType = SOUND_MP3;
@@ -68,7 +69,7 @@ Mp3Decoder::~Mp3Decoder()
 {
 	ExitRequested = true;
 	while(Decoding)
-		os_usleep(100);
+		OSSleepTicks(OSMicrosecondsToTicks(100));
 
 	mad_synth_finish(&Synth);
 	mad_frame_finish(&Frame);
@@ -82,7 +83,7 @@ Mp3Decoder::~Mp3Decoder()
 void Mp3Decoder::OpenFile()
 {
 	GuardPtr = NULL;
-	ReadBuffer = (u8 *) memalign(32, SoundBlockSize*SoundBlocks);
+	ReadBuffer = (uint8_t *) memalign(32, SoundBlockSize*SoundBlocks);
 	if(!ReadBuffer)
 	{
 		if(file_fd)
@@ -91,8 +92,8 @@ void Mp3Decoder::OpenFile()
 		return;
 	}
 
-	u8 dummybuff[4096];
-	s32 ret = Read(dummybuff, 4096, 0);
+	uint8_t dummybuff[4096];
+	int32_t ret = Read(dummybuff, 4096, 0);
 	if(ret <= 0)
 	{
 		if(file_fd)
@@ -101,12 +102,12 @@ void Mp3Decoder::OpenFile()
 		return;
 	}
 
-	SampleRate = (u32) Frame.header.samplerate;
+	SampleRate = (uint32_t) Frame.header.samplerate;
 	Format = ((MAD_NCHANNELS(&Frame.header) == 2) ? (FORMAT_PCM_16_BIT | CHANNELS_STEREO) : (FORMAT_PCM_16_BIT | CHANNELS_MONO));
 	Rewind();
 }
 
-s32 Mp3Decoder::Rewind()
+int32_t Mp3Decoder::Rewind()
 {
 	mad_synth_finish(&Synth);
 	mad_frame_finish(&Frame);
@@ -124,7 +125,7 @@ s32 Mp3Decoder::Rewind()
 	return SoundDecoder::Rewind();
 }
 
-static inline s16 FixedToShort(mad_fixed_t Fixed)
+static inline int16_t FixedToShort(mad_fixed_t Fixed)
 {
 	/* Clipping */
 	if(Fixed>=MAD_F_ONE)
@@ -133,10 +134,10 @@ static inline s16 FixedToShort(mad_fixed_t Fixed)
 		return(-SHRT_MAX);
 
 	Fixed=Fixed>>(MAD_F_FRACBITS-15);
-	return((s16)Fixed);
+	return((int16_t)Fixed);
 }
 
-s32 Mp3Decoder::Read(u8 * buffer, s32 buffer_size, s32 pos)
+int32_t Mp3Decoder::Read(uint8_t * buffer, int32_t buffer_size, int32_t pos)
 {
 	if(!file_fd)
 		return -1;
@@ -146,8 +147,8 @@ s32 Mp3Decoder::Read(u8 * buffer, s32 buffer_size, s32 pos)
 	else
 		buffer_size &= ~0x0001;
 
-	u8 * write_pos = buffer;
-	u8 * write_end = buffer+buffer_size;
+	uint8_t * write_pos = buffer;
+	uint8_t * write_end = buffer+buffer_size;
 
 	while(1)
 	{
@@ -156,12 +157,12 @@ s32 Mp3Decoder::Read(u8 * buffer, s32 buffer_size, s32 pos)
 			if(write_pos >= write_end)
 				return write_pos-buffer;
 
-			*((s16 *) write_pos) = FixedToShort(Synth.pcm.samples[0][SynthPos]);
+			*((int16_t *) write_pos) = FixedToShort(Synth.pcm.samples[0][SynthPos]);
 			write_pos += 2;
 
 			if(MAD_NCHANNELS(&Frame.header) == 2)
 			{
-				*((s16 *) write_pos) = FixedToShort(Synth.pcm.samples[1][SynthPos]);
+				*((int16_t *) write_pos) = FixedToShort(Synth.pcm.samples[1][SynthPos]);
 				write_pos += 2;
 			}
 			SynthPos++;
@@ -169,9 +170,9 @@ s32 Mp3Decoder::Read(u8 * buffer, s32 buffer_size, s32 pos)
 
 		if(Stream.buffer == NULL || Stream.error == MAD_ERROR_BUFLEN)
 		{
-			u8 * ReadStart = ReadBuffer;
-			s32 ReadSize = SoundBlockSize*SoundBlocks;
-			s32 Remaining = 0;
+			uint8_t * ReadStart = ReadBuffer;
+			int32_t ReadSize = SoundBlockSize*SoundBlocks;
+			int32_t Remaining = 0;
 
 			if(Stream.next_frame != NULL)
 			{

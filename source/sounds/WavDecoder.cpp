@@ -24,131 +24,116 @@
  * for WiiXplorer 2010
  ***************************************************************************/
 #include <string.h>
-#include "WavDecoder.hpp"
-#include "utils/utils.h"
+#include <utils/utils.h>
+#include <sounds/WavDecoder.hpp>
 
 WavDecoder::WavDecoder(const char * filepath)
-	: SoundDecoder(filepath)
-{
-	SoundType = SOUND_WAV;
-	SampleRate = 48000;
-	Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
+    : SoundDecoder(filepath) {
+    SoundType = SOUND_WAV;
+    SampleRate = 48000;
+    Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
 
-	if(!file_fd)
-		return;
+    if(!file_fd)
+        return;
 
-	OpenFile();
+    OpenFile();
 }
 
-WavDecoder::WavDecoder(const u8 * snd, s32 len)
-	: SoundDecoder(snd, len)
-{
-	SoundType = SOUND_WAV;
-	SampleRate = 48000;
-	Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
+WavDecoder::WavDecoder(const uint8_t * snd, int32_t len)
+    : SoundDecoder(snd, len) {
+    SoundType = SOUND_WAV;
+    SampleRate = 48000;
+    Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
 
-	if(!file_fd)
-		return;
+    if(!file_fd)
+        return;
 
-	OpenFile();
+    OpenFile();
 }
 
-WavDecoder::~WavDecoder()
-{
+WavDecoder::~WavDecoder() {
 }
 
 
-void WavDecoder::OpenFile()
-{
-	SWaveHdr Header;
-	SWaveFmtChunk FmtChunk;
-	memset(&Header, 0, sizeof(SWaveHdr));
-	memset(&FmtChunk, 0, sizeof(SWaveFmtChunk));
+void WavDecoder::OpenFile() {
+    SWaveHdr Header;
+    SWaveFmtChunk FmtChunk;
+    memset(&Header, 0, sizeof(SWaveHdr));
+    memset(&FmtChunk, 0, sizeof(SWaveFmtChunk));
 
-	file_fd->read((u8 *) &Header, sizeof(SWaveHdr));
-	file_fd->read((u8 *) &FmtChunk, sizeof(SWaveFmtChunk));
+    file_fd->read((uint8_t *) &Header, sizeof(SWaveHdr));
+    file_fd->read((uint8_t *) &FmtChunk, sizeof(SWaveFmtChunk));
 
-	if (Header.magicRIFF != 0x52494646) // 'RIFF'
-	{
-		CloseFile();
-		return;
-	}
-	else if(Header.magicWAVE != 0x57415645) // 'WAVE'
-	{
-		CloseFile();
-		return;
-	}
-	else if(FmtChunk.magicFMT != 0x666d7420) // 'fmt '
-	{
-		CloseFile();
-		return;
-	}
+    if (Header.magicRIFF != 0x52494646) { // 'RIFF'
+        CloseFile();
+        return;
+    } else if(Header.magicWAVE != 0x57415645) { // 'WAVE'
+        CloseFile();
+        return;
+    } else if(FmtChunk.magicFMT != 0x666d7420) { // 'fmt '
+        CloseFile();
+        return;
+    }
 
-	DataOffset = sizeof(SWaveHdr)+le32(FmtChunk.size)+8;
-	file_fd->seek(DataOffset, SEEK_SET);
-	SWaveChunk DataChunk;
-	file_fd->read((u8 *) &DataChunk, sizeof(SWaveChunk));
+    DataOffset = sizeof(SWaveHdr)+le32(FmtChunk.size)+8;
+    file_fd->seek(DataOffset, SEEK_SET);
+    SWaveChunk DataChunk;
+    file_fd->read((uint8_t *) &DataChunk, sizeof(SWaveChunk));
 
-	while(DataChunk.magicDATA != 0x64617461) // 'data'
-	{
-		DataOffset += 8+le32(DataChunk.size);
-		file_fd->seek(DataOffset, SEEK_SET);
-		s32 ret = file_fd->read((u8 *) &DataChunk, sizeof(SWaveChunk));
-		if(ret <= 0)
-		{
-			CloseFile();
-			return;
-		}
-	}
+    while(DataChunk.magicDATA != 0x64617461) { // 'data'
+        DataOffset += 8+le32(DataChunk.size);
+        file_fd->seek(DataOffset, SEEK_SET);
+        int32_t ret = file_fd->read((uint8_t *) &DataChunk, sizeof(SWaveChunk));
+        if(ret <= 0) {
+            CloseFile();
+            return;
+        }
+    }
 
-	DataOffset += 8;
-	DataSize = le32(DataChunk.size);
-	Is16Bit = (le16(FmtChunk.bps) == 16);
-	SampleRate = le32(FmtChunk.freq);
+    DataOffset += 8;
+    DataSize = le32(DataChunk.size);
+    Is16Bit = (le16(FmtChunk.bps) == 16);
+    SampleRate = le32(FmtChunk.freq);
 
-	if (le16(FmtChunk.channels) == 1 && le16(FmtChunk.bps) == 8 && le16(FmtChunk.alignment) <= 1)
-		Format = CHANNELS_MONO | FORMAT_PCM_8_BIT;
-	else if (le16(FmtChunk.channels) == 1 && le16(FmtChunk.bps) == 16 && le16(FmtChunk.alignment) <= 2)
-		Format = CHANNELS_MONO | FORMAT_PCM_16_BIT;
-	else if (le16(FmtChunk.channels) == 2 && le16(FmtChunk.bps) == 8 && le16(FmtChunk.alignment) <= 2)
-		Format = CHANNELS_STEREO | FORMAT_PCM_8_BIT;
-	else if (le16(FmtChunk.channels) == 2 && le16(FmtChunk.bps) == 16 && le16(FmtChunk.alignment) <= 4)
-		Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
+    if (le16(FmtChunk.channels) == 1 && le16(FmtChunk.bps) == 8 && le16(FmtChunk.alignment) <= 1)
+        Format = CHANNELS_MONO | FORMAT_PCM_8_BIT;
+    else if (le16(FmtChunk.channels) == 1 && le16(FmtChunk.bps) == 16 && le16(FmtChunk.alignment) <= 2)
+        Format = CHANNELS_MONO | FORMAT_PCM_16_BIT;
+    else if (le16(FmtChunk.channels) == 2 && le16(FmtChunk.bps) == 8 && le16(FmtChunk.alignment) <= 2)
+        Format = CHANNELS_STEREO | FORMAT_PCM_8_BIT;
+    else if (le16(FmtChunk.channels) == 2 && le16(FmtChunk.bps) == 16 && le16(FmtChunk.alignment) <= 4)
+        Format = CHANNELS_STEREO | FORMAT_PCM_16_BIT;
 }
 
-void WavDecoder::CloseFile()
-{
-	if(file_fd)
-		delete file_fd;
+void WavDecoder::CloseFile() {
+    if(file_fd)
+        delete file_fd;
 
-	file_fd = NULL;
+    file_fd = NULL;
 }
 
-s32 WavDecoder::Read(u8 * buffer, s32 buffer_size, s32 pos)
-{
-	if(!file_fd)
-		return -1;
+int32_t WavDecoder::Read(uint8_t * buffer, int32_t buffer_size, int32_t pos) {
+    if(!file_fd)
+        return -1;
 
-	if(CurPos >= (s32) DataSize)
-		return 0;
+    if(CurPos >= (int32_t) DataSize)
+        return 0;
 
-	file_fd->seek(DataOffset+CurPos, SEEK_SET);
+    file_fd->seek(DataOffset+CurPos, SEEK_SET);
 
-	if(buffer_size > (s32) DataSize-CurPos)
-		buffer_size = DataSize-CurPos;
+    if(buffer_size > (int32_t) DataSize-CurPos)
+        buffer_size = DataSize-CurPos;
 
-	s32 read = file_fd->read(buffer, buffer_size);
-	if(read > 0)
-	{
-		if (Is16Bit)
-		{
-			read &= ~0x0001;
+    int32_t read = file_fd->read(buffer, buffer_size);
+    if(read > 0) {
+        if (Is16Bit) {
+            read &= ~0x0001;
 
-			for (u32 i = 0; i < (u32) (read / sizeof (u16)); ++i)
-				((u16 *) buffer)[i] = le16(((u16 *) buffer)[i]);
-		}
-		CurPos += read;
-	}
+            for (uint32_t i = 0; i < (uint32_t) (read / sizeof (uint16_t)); ++i)
+                ((uint16_t *) buffer)[i] = le16(((uint16_t *) buffer)[i]);
+        }
+        CurPos += read;
+    }
 
-	return read;
+    return read;
 }

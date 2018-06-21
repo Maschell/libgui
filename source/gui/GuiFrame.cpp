@@ -14,10 +14,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiFrame.h"
+#include <gui/GuiFrame.h>
 
-GuiFrame::GuiFrame(GuiFrame *p)
-{
+GuiFrame::GuiFrame(GuiFrame *p) {
     parent = p;
     width = 0;
     height = 0;
@@ -27,8 +26,7 @@ GuiFrame::GuiFrame(GuiFrame *p)
         parent->append(this);
 }
 
-GuiFrame::GuiFrame(f32 w, f32 h, GuiFrame *p)
-{
+GuiFrame::GuiFrame(float w, float h, GuiFrame *p) {
     parent = p;
     width = w;
     height = h;
@@ -38,16 +36,14 @@ GuiFrame::GuiFrame(f32 w, f32 h, GuiFrame *p)
         parent->append(this);
 }
 
-GuiFrame::~GuiFrame()
-{
+GuiFrame::~GuiFrame() {
     closing(this);
 
     if(parent)
         parent->remove(this);
 }
 
-void GuiFrame::append(GuiElement* e)
-{
+void GuiFrame::append(GuiElement* e) {
     if (e == NULL)
         return;
 
@@ -56,8 +52,7 @@ void GuiFrame::append(GuiElement* e)
     e->setParent(this);
 }
 
-void GuiFrame::insert(GuiElement* e, u32 index)
-{
+void GuiFrame::insert(GuiElement* e, uint32_t index) {
     if (e == NULL || (index >= elements.size()))
         return;
 
@@ -66,96 +61,77 @@ void GuiFrame::insert(GuiElement* e, u32 index)
     e->setParent(this);
 }
 
-void GuiFrame::remove(GuiElement* e)
-{
+void GuiFrame::remove(GuiElement* e) {
     if (e == NULL)
         return;
 
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
-        if(e == elements[i])
-        {
+    for (uint32_t i = 0; i < elements.size(); ++i) {
+        if(e == elements[i]) {
             elements.erase(elements.begin()+i);
             break;
         }
     }
 }
 
-void GuiFrame::removeAll()
-{
+void GuiFrame::removeAll() {
     elements.clear();
 }
 
-void GuiFrame::close()
-{
+void GuiFrame::close() {
     //Application::instance()->pushForDelete(this);
 }
 
-void GuiFrame::dimBackground(bool d)
-{
+void GuiFrame::dimBackground(bool d) {
     dim = d;
 }
 
-GuiElement* GuiFrame::getGuiElementAt(u32 index) const
-{
+GuiElement* GuiFrame::getGuiElementAt(uint32_t index) const {
     if (index >= elements.size())
         return NULL;
     return elements[index];
 }
 
-u32 GuiFrame::getSize()
-{
+uint32_t GuiFrame::getSize() {
     return elements.size();
 }
 
-void GuiFrame::resetState()
-{
+void GuiFrame::resetState() {
     GuiElement::resetState();
 
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < elements.size(); ++i) {
         elements[i]->resetState();
     }
 }
 
-void GuiFrame::setState(s32 s, s32 c)
-{
+void GuiFrame::setState(int32_t s, int32_t c) {
     GuiElement::setState(s, c);
 
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < elements.size(); ++i) {
         elements[i]->setState(s, c);
     }
 }
 
-void GuiFrame::clearState(s32 s, s32 c)
-{
+void GuiFrame::clearState(int32_t s, int32_t c) {
     GuiElement::clearState(s, c);
 
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < elements.size(); ++i) {
         elements[i]->clearState(s, c);
     }
 }
 
-void GuiFrame::setVisible(bool v)
-{
+void GuiFrame::setVisible(bool v) {
     visible = v;
 
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < elements.size(); ++i) {
         elements[i]->setVisible(v);
     }
 }
 
-s32 GuiFrame::getSelected()
-{
+int32_t GuiFrame::getSelected() {
     // find selected element
-    s32 found = -1;
-    for (u32 i = 0; i < elements.size(); ++i)
-    {
-        if(elements[i]->isStateSet(STATE_SELECTED | STATE_OVER))
-        {
+    int32_t found = -1;
+    for (uint32_t i = 0; i < elements.size(); ++i) {
+        if(elements[i]->isStateSet(STATE_SELECTED | STATE_OVER)) {
             found = i;
             break;
         }
@@ -163,68 +139,59 @@ s32 GuiFrame::getSelected()
     return found;
 }
 
-void GuiFrame::draw(CVideo * v)
-{
+void GuiFrame::draw(CVideo * v) {
     if(!this->isVisible() && parentElement)
         return;
 
-    if(parentElement && dim == true)
-    {
+    if(parentElement && dim == true) {
         //GXColor dimColor = (GXColor){0, 0, 0, 0x70};
         //Menu_DrawRectangle(0, 0, GetZPosition(), screenwidth,screenheight, &dimColor, false, true);
     }
 
     //! render appended items next frame but allow stop of render if size is reached
-    u32 size = elements.size();
+    uint32_t size = elements.size();
 
-    for (u32 i = 0; i < size && i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < size && i < elements.size(); ++i) {
         elements[i]->draw(v);
     }
 }
 
-void GuiFrame::updateEffects()
-{
+void GuiFrame::updateEffects() {
     if(!this->isVisible() && parentElement)
         return;
 
     GuiElement::updateEffects();
 
     //! render appended items next frame but allow stop of render if size is reached
-    u32 size = elements.size();
+    uint32_t size = elements.size();
 
-    for (u32 i = 0; i < size && i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < size && i < elements.size(); ++i) {
         elements[i]->updateEffects();
     }
 }
 
-void GuiFrame::process()
-{
+void GuiFrame::process() {
     if(!this->isVisible() && parentElement)
         return;
 
     GuiElement::process();
 
     //! render appended items next frame but allow stop of render if size is reached
-    u32 size = elements.size();
+    uint32_t size = elements.size();
 
-    for (u32 i = 0; i < size && i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < size && i < elements.size(); ++i) {
         elements[i]->process();
     }
 }
 
-void GuiFrame::update(GuiController * c)
-{
+void GuiFrame::update(GuiController * c) {
     if(isStateSet(STATE_DISABLED) && parentElement)
         return;
 
     //! update appended items next frame
-    u32 size = elements.size();
+    uint32_t size = elements.size();
 
-    for (u32 i = 0; i < size && i < elements.size(); ++i)
-    {
+    for (uint32_t i = 0; i < size && i < elements.size(); ++i) {
         elements[i]->update(c);
     }
 }

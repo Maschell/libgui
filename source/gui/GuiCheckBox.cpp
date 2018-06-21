@@ -14,49 +14,55 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiCheckBox.h"
-#include "GuiImage.h"
-#include "GuiImageData.h"
+#include <gui/GuiCheckBox.h>
+#include <gui/GuiImage.h>
+#include <gui/GuiImageData.h>
 /**
  * Constructor for the GuiCheckBox class.
  */
 
-GuiCheckBox::GuiCheckBox(GuiImage * background, bool checked, f32 width,f32 height)
- : GuiToggle(checked,width,height){
+GuiCheckBox::GuiCheckBox(GuiImage * background, bool checked, float width,float height)
+    : GuiToggle(checked,width,height) {
     setImageBackground(background);
 }
 
 /**
  * Destructor for the GuiCheckBox class.
  */
-GuiCheckBox::~GuiCheckBox(){
+GuiCheckBox::~GuiCheckBox() {
 
 }
 
-void GuiCheckBox::setImageBackground(GuiImage* img){
-	backgroundImg = img;
-	if(img){ img->setParent(this); }
+void GuiCheckBox::setImageBackground(GuiImage* img) {
+    backgroundImg = img;
+    if(img) {
+        img->setParent(this);
+    }
 }
 
-void GuiCheckBox::setImageSelected(GuiImage* img){
-	selectedImg = img;
-	if(img){ img->setParent(this); }
+void GuiCheckBox::setImageSelected(GuiImage* img) {
+    selectedImg = img;
+    if(img) {
+        img->setParent(this);
+    }
 }
 
-void GuiCheckBox::setImageHighlighted(GuiImage* img){
+void GuiCheckBox::setImageHighlighted(GuiImage* img) {
     highlightedImg = img;
-    if(img){ img->setParent(this); }
-	setIconOver(img);
+    if(img) {
+        img->setParent(this);
+    }
+    setIconOver(img);
 }
 
-void GuiCheckBox::update(GuiController * c){
-    if(bChanged){
-        if(selected){
+void GuiCheckBox::update(GuiController * c) {
+    if(bChanged) {
+        if(selected) {
             GuiButton::setImage(selectedImg);
-        }else{
+        } else {
             GuiButton::setImage(backgroundImg);
         }
         bChanged = false;
     }
-     GuiToggle::update(c);
+    GuiToggle::update(c);
 }

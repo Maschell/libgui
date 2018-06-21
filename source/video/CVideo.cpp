@@ -16,17 +16,14 @@
  ****************************************************************************/
 #include <malloc.h>
 #include <string.h>
-#include "CVideo.h"
+#include <video/CVideo.h>
 #include <system/memory.h>
-#include "shaders/Texture2DShader.h"
-#include "shaders/ColorShader.h"
-#include "shaders/Shader3D.h"
-#include "shaders/ShaderFractalColor.h"
-#include "shaders/FXAAShader.h"
-#include <dynamic_libs/os_functions.h>
-
-CVideo::CVideo(s32 forceTvScanMode, s32 forceDrcScanMode)
-{
+#include <video/shaders/Texture2DShader.h>
+#include <video/shaders/ColorShader.h>
+#include <video/shaders/Shader3D.h>
+#include <video/shaders/ShaderFractalColor.h>
+#include <video/shaders/FXAAShader.h>
+CVideo::CVideo(int32_t forceTvScanMode, int32_t forceDrcScanMode) {
     tvEnabled = false;
     drcEnabled = false;
 
@@ -34,134 +31,128 @@ CVideo::CVideo(s32 forceTvScanMode, s32 forceDrcScanMode)
     gx2CommandBuffer = MEM2_alloc(GX2_COMMAND_BUFFER_SIZE, 0x40);
 
     //! initialize GX2 command buffer
-    u32 gx2_init_attributes[9];
-    gx2_init_attributes[0] = GX2_INIT_ATTRIB_CB_BASE;
-    gx2_init_attributes[1] = (u32)gx2CommandBuffer;
-    gx2_init_attributes[2] = GX2_INIT_ATTRIB_CB_SIZE;
+    uint32_t gx2_init_attributes[9];
+    gx2_init_attributes[0] = GX2_INIT_CMD_BUF_BASE;
+    gx2_init_attributes[1] = (uint32_t)gx2CommandBuffer;
+    gx2_init_attributes[2] = GX2_INIT_CMD_BUF_POOL_SIZE;
     gx2_init_attributes[3] = GX2_COMMAND_BUFFER_SIZE;
-    gx2_init_attributes[4] = GX2_INIT_ATTRIB_ARGC;
+    gx2_init_attributes[4] = GX2_INIT_ARGC;
     gx2_init_attributes[5] = 0;
-    gx2_init_attributes[6] = GX2_INIT_ATTRIB_ARGV;
+    gx2_init_attributes[6] = GX2_INIT_ARGV;
     gx2_init_attributes[7] = 0;
-    gx2_init_attributes[8] = GX2_INIT_ATTRIB_NULL;
+    gx2_init_attributes[8] = GX2_INIT_END;
     GX2Init(gx2_init_attributes);
 
-    //! GX2 resources are not used in this application but if needed, the allocator is setup
-    GX2RSetAllocator(&CVideo::GX2RAlloc, &CVideo::GX2RFree);
+    uint32_t scanBufferSize = 0;
+    uint32_t scaleNeeded = 0;
 
-    u32 scanBufferSize = 0;
-    s32 scaleNeeded = 0;
+    int32_t tvScanMode = ((forceTvScanMode >= 0) ? forceTvScanMode : (int32_t)GX2GetSystemTVScanMode());
+    int32_t drcScanMode = ((forceDrcScanMode >= 0) ? forceDrcScanMode : (int32_t)GX2GetSystemDRCScanMode());
 
-    s32 tvScanMode = (forceTvScanMode >= 0) ? forceTvScanMode : GX2GetSystemTVScanMode();
-    s32 drcScanMode = (forceDrcScanMode >= 0) ? forceDrcScanMode : GX2GetSystemDRCScanMode();
+    int32_t tvRenderMode;
+    uint32_t tvWidth = 0;
+    uint32_t tvHeight = 0;
 
-    s32 tvRenderMode;
-    u32 tvWidth = 0;
-    u32 tvHeight = 0;
-
-    switch(tvScanMode)
-    {
+    switch(tvScanMode) {
     case GX2_TV_SCAN_MODE_480I:
     case GX2_TV_SCAN_MODE_480P:
         tvWidth = 854;
         tvHeight = 480;
-        tvRenderMode = GX2_TV_RENDER_480_WIDE;
+        tvRenderMode = GX2_TV_RENDER_MODE_WIDE_480P;
         break;
     case GX2_TV_SCAN_MODE_1080I:
     case GX2_TV_SCAN_MODE_1080P:
         tvWidth = 1920;
         tvHeight = 1080;
-        tvRenderMode = GX2_TV_RENDER_1080;
+        tvRenderMode = GX2_TV_RENDER_MODE_WIDE_1080P;
         break;
     case GX2_TV_SCAN_MODE_720P:
     default:
         tvWidth = 1280;
         tvHeight = 720;
-        tvRenderMode = GX2_TV_RENDER_720;
+        tvRenderMode = GX2_TV_RENDER_MODE_WIDE_720P;
         break;
     }
 
-    s32 tvAAMode = GX2_AA_MODE_1X;
-    s32 drcAAMode = GX2_AA_MODE_4X;
+    int32_t tvAAMode = GX2_AA_MODE1X;
+    int32_t drcAAMode = GX2_AA_MODE4X;
 
     //! calculate the scale factor for later texture resize
-    widthScaleFactor = 1.0f / (f32)tvWidth;
-    heightScaleFactor = 1.0f / (f32)tvHeight;
+    widthScaleFactor = 1.0f / (float)tvWidth;
+    heightScaleFactor = 1.0f / (float)tvHeight;
     depthScaleFactor = widthScaleFactor;
 
     //! calculate the size needed for the TV scan buffer and allocate the buffer from bucket memory
-    GX2CalcTVSize(tvRenderMode, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, GX2_BUFFERING_DOUBLE, &scanBufferSize, &scaleNeeded);
+    GX2CalcTVSize((GX2TVRenderMode)tvRenderMode, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_BUFFERING_MODE_DOUBLE, &scanBufferSize, &scaleNeeded);
     tvScanBuffer = MEMBucket_alloc(scanBufferSize, GX2_SCAN_BUFFER_ALIGNMENT);
-    GX2Invalidate(GX2_INVALIDATE_CPU, tvScanBuffer, scanBufferSize);
-    GX2SetTVBuffer(tvScanBuffer, scanBufferSize, tvRenderMode, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, GX2_BUFFERING_DOUBLE);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, tvScanBuffer, scanBufferSize);
+    GX2SetTVBuffer(tvScanBuffer, scanBufferSize, (GX2TVRenderMode)tvRenderMode, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_BUFFERING_MODE_DOUBLE);
 
     //! calculate the size needed for the DRC scan buffer and allocate the buffer from bucket memory
-    GX2CalcDRCSize(drcScanMode, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, GX2_BUFFERING_DOUBLE, &scanBufferSize, &scaleNeeded);
+    GX2CalcDRCSize((GX2DrcRenderMode)drcScanMode, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_BUFFERING_MODE_DOUBLE, &scanBufferSize, &scaleNeeded);
     drcScanBuffer = MEMBucket_alloc(scanBufferSize, GX2_SCAN_BUFFER_ALIGNMENT);
-    GX2Invalidate(GX2_INVALIDATE_CPU, drcScanBuffer, scanBufferSize);
-    GX2SetDRCBuffer(drcScanBuffer, scanBufferSize, drcScanMode, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, GX2_BUFFERING_DOUBLE);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, drcScanBuffer, scanBufferSize);
+    GX2SetDRCBuffer(drcScanBuffer, scanBufferSize, (GX2DrcRenderMode)drcScanMode, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_BUFFERING_MODE_DOUBLE);
 
     //! Setup color buffer for TV rendering
-    GX2InitColorBuffer(&tvColorBuffer, GX2_SURFACE_DIM_2D, tvWidth, tvHeight, 1, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, tvAAMode);
-    tvColorBuffer.surface.image_data = MEM1_alloc(tvColorBuffer.surface.image_size, tvColorBuffer.surface.align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, tvColorBuffer.surface.image_data, tvColorBuffer.surface.image_size);
+    GX2InitColorBuffer(&tvColorBuffer, GX2_SURFACE_DIM_TEXTURE_2D, tvWidth, tvHeight, 1, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, (GX2AAMode)tvAAMode);
+    tvColorBuffer.surface.image = MEM1_alloc(tvColorBuffer.surface.imageSize, tvColorBuffer.surface.alignment);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, tvColorBuffer.surface.image, tvColorBuffer.surface.imageSize);
 
     //! due to AA we can only use 16 bit depth buffer in MEM1 otherwise we would have to switch to mem2 for depth buffer
     //! this should be ok for our purpose i guess
 
     //! Setup TV depth buffer (can be the same for both if rendered one after another)
-    u32 size, align;
-    GX2InitDepthBuffer(&tvDepthBuffer, GX2_SURFACE_DIM_2D, tvColorBuffer.surface.width, tvColorBuffer.surface.height, 1, GX2_SURFACE_FORMAT_TCD_R32_FLOAT, tvAAMode);
-    tvDepthBuffer.surface.image_data = MEM1_alloc(tvDepthBuffer.surface.image_size, tvDepthBuffer.surface.align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, tvDepthBuffer.surface.image_data, tvDepthBuffer.surface.image_size);
+    uint32_t size, align;
+    GX2InitDepthBuffer(&tvDepthBuffer, GX2_SURFACE_DIM_TEXTURE_2D, tvColorBuffer.surface.width, tvColorBuffer.surface.height, 1, GX2_SURFACE_FORMAT_FLOAT_R32, (GX2AAMode)tvAAMode);
+    tvDepthBuffer.surface.image = MEM1_alloc(tvDepthBuffer.surface.imageSize, tvDepthBuffer.surface.alignment);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, tvDepthBuffer.surface.image, tvDepthBuffer.surface.imageSize);
 
     //! Setup TV HiZ buffer
     GX2CalcDepthBufferHiZInfo(&tvDepthBuffer, &size, &align);
-    tvDepthBuffer.hiZ_data = MEM1_alloc(size, align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, tvDepthBuffer.hiZ_data, size);
+    tvDepthBuffer.hiZPtr = MEM1_alloc(size, align);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, tvDepthBuffer.hiZPtr, size);
     GX2InitDepthBufferHiZEnable(&tvDepthBuffer, GX2_ENABLE);
 
     //! Setup color buffer for DRC rendering
-    GX2InitColorBuffer(&drcColorBuffer, GX2_SURFACE_DIM_2D, 854, 480, 1, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, drcAAMode);
-    drcColorBuffer.surface.image_data = MEM1_alloc(drcColorBuffer.surface.image_size, drcColorBuffer.surface.align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, drcColorBuffer.surface.image_data, drcColorBuffer.surface.image_size);
+    GX2InitColorBuffer(&drcColorBuffer, GX2_SURFACE_DIM_TEXTURE_2D, 854, 480, 1, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, (GX2AAMode)drcAAMode);
+    drcColorBuffer.surface.image = MEM1_alloc(drcColorBuffer.surface.imageSize, drcColorBuffer.surface.alignment);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, drcColorBuffer.surface.image, drcColorBuffer.surface.imageSize);
 
     //! Setup DRC depth buffer (can be the same for both if rendered one after another)
-    GX2InitDepthBuffer(&drcDepthBuffer, GX2_SURFACE_DIM_2D, drcColorBuffer.surface.width, drcColorBuffer.surface.height, 1, GX2_SURFACE_FORMAT_TCD_R32_FLOAT, drcAAMode);
-    drcDepthBuffer.surface.image_data = MEM1_alloc(drcDepthBuffer.surface.image_size, drcDepthBuffer.surface.align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, drcDepthBuffer.surface.image_data, drcDepthBuffer.surface.image_size);
+    GX2InitDepthBuffer(&drcDepthBuffer, GX2_SURFACE_DIM_TEXTURE_2D, drcColorBuffer.surface.width, drcColorBuffer.surface.height, 1, GX2_SURFACE_FORMAT_FLOAT_R32, (GX2AAMode)drcAAMode);
+    drcDepthBuffer.surface.image = MEM1_alloc(drcDepthBuffer.surface.imageSize, drcDepthBuffer.surface.alignment);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, drcDepthBuffer.surface.image, drcDepthBuffer.surface.imageSize);
 
     //! Setup DRC HiZ buffer
     GX2CalcDepthBufferHiZInfo(&drcDepthBuffer, &size, &align);
-    drcDepthBuffer.hiZ_data = MEM1_alloc(size, align);
-    GX2Invalidate(GX2_INVALIDATE_CPU, drcDepthBuffer.hiZ_data, size);
+    drcDepthBuffer.hiZPtr = MEM1_alloc(size, align);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, drcDepthBuffer.hiZPtr, size);
     GX2InitDepthBufferHiZEnable(&drcDepthBuffer, GX2_ENABLE);
 
 
     //! allocate auxilary buffer last as there might not be enough MEM1 left for other stuff after that
-    if (tvColorBuffer.surface.aa)
-    {
-        u32 auxSize, auxAlign;
+    if (tvColorBuffer.surface.aa) {
+        uint32_t auxSize, auxAlign;
         GX2CalcColorBufferAuxInfo(&tvColorBuffer, &auxSize, &auxAlign);
-        tvColorBuffer.aux_data = MEM1_alloc(auxSize, auxAlign);
-        if(!tvColorBuffer.aux_data)
-            tvColorBuffer.aux_data = MEM2_alloc(auxSize, auxAlign);
+        tvColorBuffer.aaBuffer = MEM1_alloc(auxSize, auxAlign);
+        if(!tvColorBuffer.aaBuffer)
+            tvColorBuffer.aaBuffer = MEM2_alloc(auxSize, auxAlign);
 
-        tvColorBuffer.aux_size = auxSize;
-        memset(tvColorBuffer.aux_data, GX2_AUX_BUFFER_CLEAR_VALUE, auxSize);
-        GX2Invalidate(GX2_INVALIDATE_CPU, tvColorBuffer.aux_data, auxSize);
+        tvColorBuffer.aaSize = auxSize;
+        memset(tvColorBuffer.aaBuffer, GX2_AA_BUFFER_CLEAR_VALUE, auxSize);
+        GX2Invalidate(GX2_INVALIDATE_MODE_CPU, tvColorBuffer.aaBuffer, auxSize);
     }
 
-    if (drcColorBuffer.surface.aa)
-    {
-        u32 auxSize, auxAlign;
+    if (drcColorBuffer.surface.aa) {
+        uint32_t auxSize, auxAlign;
         GX2CalcColorBufferAuxInfo(&drcColorBuffer, &auxSize, &auxAlign);
-        drcColorBuffer.aux_data = MEM1_alloc(auxSize, auxAlign);
-        if(!drcColorBuffer.aux_data)
-            drcColorBuffer.aux_data = MEM2_alloc(auxSize, auxAlign);
-        drcColorBuffer.aux_size = auxSize;
-        memset(drcColorBuffer.aux_data, GX2_AUX_BUFFER_CLEAR_VALUE, auxSize);
-        GX2Invalidate(GX2_INVALIDATE_CPU, drcColorBuffer.aux_data, auxSize );
+        drcColorBuffer.aaBuffer = MEM1_alloc(auxSize, auxAlign);
+        if(!drcColorBuffer.aaBuffer)
+            drcColorBuffer.aaBuffer = MEM2_alloc(auxSize, auxAlign);
+        drcColorBuffer.aaSize = auxSize;
+        memset(drcColorBuffer.aaBuffer, GX2_AA_BUFFER_CLEAR_VALUE, auxSize);
+        GX2Invalidate(GX2_INVALIDATE_MODE_CPU, drcColorBuffer.aaBuffer, auxSize);
     }
 
     //! allocate memory and setup context state TV
@@ -192,23 +183,22 @@ CVideo::CVideo(s32 forceTvScanMode, s32 forceDrcScanMode)
     //GX2SetDRCGamma(0.8f);
 
     //! initialize perspective matrix
-	const float cam_X_rot = 25.0f;
+    const float cam_X_rot = 25.0f;
 
-	projectionMtx = glm::perspective(45.0f, 1.0f, 0.1f, 100.0f);
+    projectionMtx = glm::perspective(45.0f, 1.0f, 0.1f, 100.0f);
 
-	viewMtx = glm::mat4(1.0f);
-	viewMtx = glm::translate(viewMtx, glm::vec3(0.0f, 0.0f, -2.5f));
-	viewMtx = glm::rotate(viewMtx, DegToRad(cam_X_rot), glm::vec3(1.0f, 0.0f, 0.0f));
+    viewMtx = glm::mat4(1.0f);
+    viewMtx = glm::translate(viewMtx, glm::vec3(0.0f, 0.0f, -2.5f));
+    viewMtx = glm::rotate(viewMtx, DegToRad(cam_X_rot), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    GX2InitSampler(&aaSampler, GX2_TEX_CLAMP_CLAMP, GX2_TEX_XY_FILTER_BILINEAR);
-    GX2InitTexture(&tvAaTexture, tvColorBuffer.surface.width, tvColorBuffer.surface.height, 1, 0, GX2_SURFACE_FORMAT_TCS_R8_G8_B8_A8_UNORM, GX2_SURFACE_DIM_2D, GX2_TILE_MODE_DEFAULT);
-    tvAaTexture.surface.image_data = tvColorBuffer.surface.image_data;
-    tvAaTexture.surface.image_size = tvColorBuffer.surface.image_size;
-    tvAaTexture.surface.mip_data = tvColorBuffer.surface.mip_data;
+    GX2InitSampler(&aaSampler, GX2_TEX_CLAMP_MODE_CLAMP, GX2_TEX_XY_FILTER_MODE_LINEAR);
+    GX2InitTexture(&tvAaTexture, tvColorBuffer.surface.width, tvColorBuffer.surface.height, 1, 0, GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8, GX2_SURFACE_DIM_TEXTURE_2D, GX2_TILE_MODE_DEFAULT);
+    tvAaTexture.surface.image = tvColorBuffer.surface.image;
+    tvAaTexture.surface.imageSize = tvColorBuffer.surface.imageSize;
+    tvAaTexture.surface.mipmaps = tvColorBuffer.surface.mipmaps;
 }
 
-CVideo::~CVideo()
-{
+CVideo::~CVideo() {
     //! flush buffers
     GX2Flush();
     GX2DrawDone();
@@ -220,71 +210,47 @@ CVideo::~CVideo()
     MEMBucket_free(tvScanBuffer);
     MEMBucket_free(drcScanBuffer);
     //! free color buffers
-    MEM1_free(tvColorBuffer.surface.image_data);
-    MEM1_free(drcColorBuffer.surface.image_data);
+    MEM1_free(tvColorBuffer.surface.image);
+    MEM1_free(drcColorBuffer.surface.image);
     //! free depth buffers
-    MEM1_free(tvDepthBuffer.surface.image_data);
-    MEM1_free(tvDepthBuffer.hiZ_data);
-    MEM1_free(drcDepthBuffer.surface.image_data);
-    MEM1_free(drcDepthBuffer.hiZ_data);
+    MEM1_free(tvDepthBuffer.surface.image);
+    MEM1_free(tvDepthBuffer.hiZPtr);
+    MEM1_free(drcDepthBuffer.surface.image);
+    MEM1_free(drcDepthBuffer.hiZPtr);
     //! free context buffers
     MEM2_free(tvContextState);
     MEM2_free(drcContextState);
     //! free aux buffer
-    if(tvColorBuffer.aux_data)
-    {
-        if(((u32)tvColorBuffer.aux_data & 0xF0000000) == 0xF0000000)
-            MEM1_free(tvColorBuffer.aux_data);
+    if(tvColorBuffer.aaBuffer) {
+        if(((uint32_t)tvColorBuffer.aaBuffer & 0xF0000000) == 0xF0000000)
+            MEM1_free(tvColorBuffer.aaBuffer);
         else
-            MEM2_free(tvColorBuffer.aux_data);
+            MEM2_free(tvColorBuffer.aaBuffer);
     }
-    if(drcColorBuffer.aux_data)
-    {
-        if(((u32)drcColorBuffer.aux_data & 0xF0000000) == 0xF0000000)
-            MEM1_free(drcColorBuffer.aux_data);
+    if(drcColorBuffer.aaBuffer) {
+        if(((uint32_t)drcColorBuffer.aaBuffer & 0xF0000000) == 0xF0000000)
+            MEM1_free(drcColorBuffer.aaBuffer);
         else
-            MEM2_free(drcColorBuffer.aux_data);
+            MEM2_free(drcColorBuffer.aaBuffer);
     }
     //! destroy shaders
     ColorShader::destroyInstance();
     FXAAShader::destroyInstance();
     Shader3D::destroyInstance();
-    ShaderFractalColor::destroyInstance();
     Texture2DShader::destroyInstance();
 }
 
-void CVideo::renderFXAA(const GX2Texture * texture, const GX2Sampler *sampler)
-{
+void CVideo::renderFXAA(const GX2Texture * texture, const GX2Sampler *sampler) {
     resolution[0] = texture->surface.width;
     resolution[1] = texture->surface.height;
 
-    GX2Invalidate(GX2_INVALIDATE_COLOR_BUFFER | GX2_INVALIDATE_TEXTURE, texture->surface.image_data, texture->surface.image_size);
+    GX2Invalidate((GX2InvalidateMode)(GX2_INVALIDATE_MODE_COLOR_BUFFER | GX2_INVALIDATE_MODE_TEXTURE), texture->surface.image, texture->surface.imageSize);
 
-    GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_ALWAYS);
+    GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_FUNC_ALWAYS);
     FXAAShader::instance()->setShaders();
     FXAAShader::instance()->setAttributeBuffer();
     FXAAShader::instance()->setResolution(resolution);
     FXAAShader::instance()->setTextureAndSampler(texture, sampler);
     FXAAShader::instance()->draw();
-    GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_LEQUAL);
-}
-
-void* CVideo::GX2RAlloc(u32 flags, u32 size, u32 align)
-{
-    //! min. alignment
-    if (align < 4)
-        align = 4;
-
-    if ((flags & 0x2040E) && !(flags & 0x40000))
-        return MEM1_alloc(size, align);
-    else
-        return MEM2_alloc(size, align);
-}
-
-void CVideo::GX2RFree(u32 flags, void* p)
-{
-    if ((flags & 0x2040E) && !(flags & 0x40000))
-        MEM1_free(p);
-    else
-        MEM2_free(p);
+    GX2SetDepthOnlyControl(GX2_ENABLE, GX2_ENABLE, GX2_COMPARE_FUNC_LEQUAL);
 }

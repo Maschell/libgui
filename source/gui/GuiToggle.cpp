@@ -14,14 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiToggle.h"
+#include <gui/GuiToggle.h>
 /**
  * Constructor for the GuiToggle class.
  */
 
-GuiToggle::GuiToggle(bool checked,f32 width,f32 height)
- : GuiButton(width,height)
-{
+GuiToggle::GuiToggle(bool checked,float width,float height)
+    : GuiButton(width,height) {
     bChanged = false;
     selected = checked;
     clicked.connect(this,&GuiToggle::OnToggleClick);
@@ -30,23 +29,22 @@ GuiToggle::GuiToggle(bool checked,f32 width,f32 height)
 /**
  * Destructor for the GuiButton class.
  */
-GuiToggle::~GuiToggle()
-{
+GuiToggle::~GuiToggle() {
     bChanged = false;
     selected = false;
 }
 
-void GuiToggle::OnToggleClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger){
-    if(!isStateSet(STATE_DISABLED | STATE_HIDDEN | STATE_DISABLE_INPUT)){
-        if(selected){
+void GuiToggle::OnToggleClick(GuiButton *button, const GuiController *controller, GuiTrigger *trigger) {
+    if(!isStateSet(STATE_DISABLED | STATE_HIDDEN | STATE_DISABLE_INPUT)) {
+        if(selected) {
             setUnchecked();
-        }else{
+        } else {
             setChecked();
         }
     }
 }
 
-void GuiToggle::update(GuiController * c){
+void GuiToggle::update(GuiController * c) {
     GuiButton::update(c);
 }
 

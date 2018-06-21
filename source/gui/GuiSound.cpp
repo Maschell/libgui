@@ -14,49 +14,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ****************************************************************************/
-#include "GuiSound.h"
-#include "sounds/SoundHandler.hpp"
-#include <dynamic_libs/os_functions.h>
+#include <gui/GuiSound.h>
+#include <sounds/SoundHandler.hpp>
 
-GuiSound::GuiSound(const char * filepath)
-{
-	voice = -1;
-	Load(filepath);
+GuiSound::GuiSound(const char * filepath) {
+    voice = -1;
+    Load(filepath);
 }
 
-GuiSound::GuiSound(const u8 * snd, s32 length)
-{
-	voice = -1;
-	Load(snd, length);
+GuiSound::GuiSound(const uint8_t * snd, int32_t length) {
+    voice = -1;
+    Load(snd, length);
 }
 
-GuiSound::~GuiSound()
-{
-    if(voice >= 0)
-    {
+GuiSound::~GuiSound() {
+    if(voice >= 0) {
         SoundHandler::instance()->RemoveDecoder(voice);
     }
 }
 
 
-bool GuiSound::Load(const char * filepath)
-{
-    if(voice >= 0)
-    {
+bool GuiSound::Load(const char * filepath) {
+    if(voice >= 0) {
         SoundHandler::instance()->RemoveDecoder(voice);
         voice = -1;
     }
 
     //! find next free decoder
-    for(s32 i = 0; i < MAX_DECODERS; i++)
-    {
+    for(int32_t i = 0; i < MAX_DECODERS; i++) {
         SoundDecoder * decoder = SoundHandler::instance()->getDecoder(i);
-        if(decoder == NULL)
-        {
+        if(decoder == NULL) {
             SoundHandler::instance()->AddDecoder(i, filepath);
             decoder = SoundHandler::instance()->getDecoder(i);
-            if(decoder)
-            {
+            if(decoder) {
                 voice = i;
                 SoundHandler::instance()->ThreadSignal();
             }
@@ -64,17 +54,15 @@ bool GuiSound::Load(const char * filepath)
         }
     }
 
-    if(voice < 0){
+    if(voice < 0) {
         return false;
     }
 
-	return true;
+    return true;
 }
 
-bool GuiSound::Load(const u8 * snd, s32 len)
-{
-    if(voice >= 0)
-    {
+bool GuiSound::Load(const uint8_t * snd, int32_t len) {
+    if(voice >= 0) {
         SoundHandler::instance()->RemoveDecoder(voice);
         voice = -1;
     }
@@ -83,15 +71,12 @@ bool GuiSound::Load(const u8 * snd, s32 len)
         return false;
 
     //! find next free decoder
-    for(s32 i = 0; i < MAX_DECODERS; i++)
-    {
+    for(int32_t i = 0; i < MAX_DECODERS; i++) {
         SoundDecoder * decoder = SoundHandler::instance()->getDecoder(i);
-        if(decoder == NULL)
-        {
+        if(decoder == NULL) {
             SoundHandler::instance()->AddDecoder(i, snd, len);
             decoder = SoundHandler::instance()->getDecoder(i);
-            if(decoder)
-            {
+            if(decoder) {
                 voice = i;
                 SoundHandler::instance()->ThreadSignal();
             }
@@ -99,15 +84,14 @@ bool GuiSound::Load(const u8 * snd, s32 len)
         }
     }
 
-    if(voice < 0){
+    if(voice < 0) {
         return false;
     }
 
-	return true;
+    return true;
 }
 
-void GuiSound::Play()
-{
+void GuiSound::Play() {
     Stop();
 
     Voice * v = SoundHandler::instance()->getVoice(voice);
@@ -117,21 +101,18 @@ void GuiSound::Play()
 
 }
 
-void GuiSound::Stop()
-{
+void GuiSound::Stop() {
     Voice * v = SoundHandler::instance()->getVoice(voice);
-    if(v)
-    {
+    if(v) {
         if((v->getState() != Voice::STATE_STOP) && (v->getState() != Voice::STATE_STOPPED))
             v->setState(Voice::STATE_STOP);
 
         while(v->getState() != Voice::STATE_STOPPED)
-            os_usleep(1000);
+            OSSleepTicks(OSMicrosecondsToTicks(1000));
     }
 
     SoundDecoder * decoder = SoundHandler::instance()->getDecoder(voice);
-    if(decoder)
-    {
+    if(decoder) {
         decoder->Lock();
         decoder->Rewind();
         decoder->ClearBuffer();
@@ -140,8 +121,7 @@ void GuiSound::Stop()
     }
 }
 
-void GuiSound::Pause()
-{
+void GuiSound::Pause() {
     if(!IsPlaying())
         return;
 
@@ -150,8 +130,7 @@ void GuiSound::Pause()
         v->setState(Voice::STATE_STOP);
 }
 
-void GuiSound::Resume()
-{
+void GuiSound::Resume() {
     if(IsPlaying())
         return;
 
@@ -160,35 +139,31 @@ void GuiSound::Resume()
         v->setState(Voice::STATE_START);
 }
 
-bool GuiSound::IsPlaying()
-{
+bool GuiSound::IsPlaying() {
     Voice * v = SoundHandler::instance()->getVoice(voice);
-    if(v){
+    if(v) {
         return v->getState() == Voice::STATE_PLAYING;
     }
-	return false;
+    return false;
 }
 
-void GuiSound::SetVolume(u32 vol)
-{
+void GuiSound::SetVolume(uint32_t vol) {
     if(vol > 100)
         vol = 100;
 
-    u32 volumeConv = ( (0x8000 * vol) / 100 ) << 16;
+    uint32_t volumeConv = ( (0x8000 * vol) / 100 ) << 16;
 
     Voice * v = SoundHandler::instance()->getVoice(voice);
     if(v)
         v->setVolume(volumeConv);
 }
 
-void GuiSound::SetLoop(bool l)
-{
+void GuiSound::SetLoop(bool l) {
     SoundDecoder * decoder = SoundHandler::instance()->getDecoder(voice);
     if(decoder)
         decoder->SetLoop(l);
 }
 
-void GuiSound::Rewind()
-{
+void GuiSound::Rewind() {
     Stop();
 }
