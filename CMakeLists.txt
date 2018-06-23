@@ -8,7 +8,7 @@ file(GLOB_RECURSE HEADER_FILES *.h*)
 add_library(gui STATIC ${SOURCE_FILES} ${HEADER_FILES})
 
 target_link_libraries(gui
-                      utilswut)
+                      utils)
 
                       
 include_directories("$ENV{WUT_ROOT}/include/libutils" REQUIRED)
