@@ -22,6 +22,7 @@
 #include <utils/utils.h>
 #include <gx2/shaders.h>
 #include <gx2/mem.h>
+#include <gx2/enum.h>
 #include <gx2/registers.h>
 #include <gx2/draw.h>
 

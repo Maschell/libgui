@@ -25,7 +25,7 @@ public:
         : fetchShader(NULL)
         , fetchShaderProgramm(NULL) {
         uint32_t shaderSize = GX2CalcFetchShaderSizeEx(attrCount, type, tess);
-        fetchShaderProgramm = (uint8_t*)memalign(GX2_SHADER_ALIGNMENT, shaderSize);
+        fetchShaderProgramm = (uint8_t*)memalign(GX2_SHADER_PROGRAM_ALIGNMENT, shaderSize);
         if(fetchShaderProgramm) {
             fetchShader = new GX2FetchShader;
             GX2InitFetchShaderEx(fetchShader, fetchShaderProgramm, attrCount, attributes, type, tess);

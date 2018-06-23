@@ -14,16 +14,6 @@ extern "C" {
 #include <gx2/surface.h>
 #include <gx2/texture.h>
 
-#define GX2_FALSE                                       0
-#define GX2_TRUE                                        1
-#define GX2_DISABLE                                     0
-#define GX2_ENABLE                                      1
-
-#define GX2_COMMAND_BUFFER_SIZE                         0x400000
-#define GX2_SHADER_ALIGNMENT                            0x100
-#define GX2_VERTEX_BUFFER_ALIGNMENT                     0x40
-#define GX2_INDEX_BUFFER_ALIGNMENT                      0x20
-
 #define GX2_AA_BUFFER_CLEAR_VALUE                       0xCC
 
 #define GX2_COMP_SEL_NONE                               0x04040405
@@ -37,6 +27,14 @@ extern "C" {
 #define GX2_COMP_SEL_WWWW                               0x03030303
 #define GX2_COMP_SEL_WZYX                               0x03020100
 #define GX2_COMP_SEL_WXYZ                               0x03000102
+
+typedef struct _GX2Color {
+    uint8_t r, g, b, a;
+} GX2Color;
+
+typedef struct _GX2ColorF32 {
+    float r, g, b, a;
+} GX2ColorF32;
 
 static const uint32_t attribute_dest_comp_selector[20] = {
     GX2_COMP_SEL_X001, GX2_COMP_SEL_XY01, GX2_COMP_SEL_X001, GX2_COMP_SEL_X001,  GX2_COMP_SEL_XY01, GX2_COMP_SEL_X001,
@@ -56,14 +54,6 @@ static const uint32_t texture_comp_selector[54] = {
     GX2_COMP_SEL_XY01, GX2_COMP_SEL_XYZ1, GX2_COMP_SEL_NONE, GX2_COMP_SEL_NONE, GX2_COMP_SEL_NONE, GX2_COMP_SEL_XYZ1,
     GX2_COMP_SEL_XYZ1, GX2_COMP_SEL_XYZW, GX2_COMP_SEL_XYZW, GX2_COMP_SEL_XYZW, GX2_COMP_SEL_X001, GX2_COMP_SEL_XY01
 };
-
-typedef struct _GX2Color {
-    uint8_t r, g, b, a;
-} GX2Color;
-
-typedef struct _GX2ColorF32 {
-    float r, g, b, a;
-} GX2ColorF32;
 
 static inline void GX2InitDepthBuffer(GX2DepthBuffer *depthBuffer, GX2SurfaceDim dim, uint32_t width, uint32_t height, uint32_t depth, GX2SurfaceFormat format, GX2AAMode aa) {
     depthBuffer->surface.dim = dim;
@@ -167,5 +157,5 @@ static inline void GX2InitTexture(GX2Texture *tex, uint32_t width, uint32_t heig
 }
 #endif
 
-#endif	/* COMMON_H */
+#endif
 

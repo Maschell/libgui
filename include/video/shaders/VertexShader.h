@@ -80,7 +80,7 @@ public:
 
         //! this must be moved into an area where the graphic engine has access to and must be aligned to 0x100
         vertexShader->size = programSize;
-        vertexShader->program = (uint8_t*) memalign(GX2_SHADER_ALIGNMENT, vertexShader->size);
+        vertexShader->program = (uint8_t*) memalign(GX2_SHADER_PROGRAM_ALIGNMENT, vertexShader->size);
         if(vertexShader->program) {
             memcpy(vertexShader->program, program, vertexShader->size);
             GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, vertexShader->program, vertexShader->size);

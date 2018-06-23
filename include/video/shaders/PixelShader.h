@@ -67,7 +67,7 @@ public:
 
         //! this must be moved into an area where the graphic engine has access to and must be aligned to 0x100
         pixelShader->size = programSize;
-        pixelShader->program = (uint8_t*)memalign(GX2_SHADER_ALIGNMENT, pixelShader->size);
+        pixelShader->program = (uint8_t*)memalign(GX2_SHADER_PROGRAM_ALIGNMENT, pixelShader->size);
         if(pixelShader->program) {
             memcpy(pixelShader->program, program, pixelShader->size);
             GX2Invalidate(GX2_INVALIDATE_MODE_CPU_SHADER, pixelShader->program, pixelShader->size);
