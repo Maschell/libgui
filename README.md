@@ -13,14 +13,14 @@ memoryRelease();
 
 Link the application with:
 ```Makefile
--lgui -lutilswut -lfreetype -lgd -lpng -ljpeg -lz  -lmad -lvorbisidec
+-lguiwut -lutilswut -lfreetype -lgd -lpng -ljpeg -lmad -lvorbisidec -lzlib125
 ```
 
 You also need to add the include path to your Makefile. Example:
 
 ```Makefile
 export INCLUDE	:= [...] -I$(PORTLIBS)/include/freetype2 \
-						 -I$(WUT_ROOT)/include/libgui \
+						 -I$(WUT_ROOT)/include/libguiwut \
 						 -I$(PORTLIBS)/include
 ```
 
@@ -40,8 +40,7 @@ This package includes:
 - freetype2 
 - libgd 
 - libpng 
-- libjpeg 
-- libz  
+- libjpeg
 - libmad 
 - vorbisidec
 
