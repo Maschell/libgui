@@ -53,6 +53,14 @@ This package includes:
 - libmad 
 - vorbisidec
 
+# Use the prebuilt files from a Docker image.
+The image `wiiulegacy/libgui` on [Docker Hub](https://hub.docker.com/r/wiiulegacy/libgui/) provides a prebuilt library in the `/artifacts` directory. Copy it into your DevkitPPC portlibs folder.  
+
+Example:  
+```
+COPY --from=wiiulegacy/libgui:0.1 /artifacts $DEVKITPRO/portlibs
+```
+
 # Credits
 - Orignally based on https://github.com/dborth/libwiigui
 - Wii U port / modification / new functions / sound / much more by dimok.
