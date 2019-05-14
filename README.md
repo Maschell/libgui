@@ -42,7 +42,7 @@ To be able to use libgui, you need to install the following dependencies:
 - [libutils](https://github.com/Maschell/libutils) for common functions.
 - [dynamic_libs](https://github.com/Maschell/dynamic_libs/tree/lib) for access to the functions.
 
-- Install the required portlibs via `(dkp) pacman -Syu ppc-zlib ppc-libmad ppc-libogg ppc-libgd ppc-freetype ppc-libjpeg-turbo ppc-libpng ppc-libvorbisidec ppc-glm ppc-bzip2`
+- Install the required portlibs via `(dkp-)pacman -Syu ppc-zlib ppc-libmad ppc-libogg ppc-libgd ppc-freetype ppc-libjpeg-turbo ppc-libpng ppc-libvorbisidec ppc-glm ppc-bzip2`
 
 # Use the prebuilt files from a Docker image.
 The image `wiiulegacy/libgui` on [Docker Hub](https://hub.docker.com/r/wiiulegacy/libgui/) provides a prebuilt library in the `/artifacts` directory. Copy it into your DevkitPPC portlibs folder.  
