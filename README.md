@@ -22,7 +22,7 @@ unmount_sd_fat("sd");
 
 Link the application with:
 ```Makefile
--lgui -lutils -ldynamiclibs -lfreetype -lgd -lpng -ljpeg -lz  -lmad -lvorbisidec
+-lgui -lutils -ldynamiclibs -lfreetype -lgd -lpng -ljpeg -lz -lmad -lvorbisidec -logg -lbz2
 ```
 
 You also need to add the include path to your Makefile. Example:
@@ -42,16 +42,7 @@ To be able to use libgui, you need to install the following dependencies:
 - [libutils](https://github.com/Maschell/libutils) for common functions.
 - [dynamic_libs](https://github.com/Maschell/dynamic_libs/tree/lib) for access to the functions.
 
-And other portable libraries that can be found in the "libs" folder of this repository. Extract the "portlibs.zip" into your devkitPro directory.
-This package includes:
-
-- freetype2 
-- libgd 
-- libpng 
-- libjpeg 
-- libz  
-- libmad 
-- vorbisidec
+- Install the required portlibs via `(dkp) pacman -Syu ppc-zlib ppc-libmad ppc-libogg ppc-libgd ppc-freetype ppc-libjpeg-turbo ppc-libpng ppc-libvorbisidec ppc-glm ppc-bzip2`
 
 # Use the prebuilt files from a Docker image.
 The image `wiiulegacy/libgui` on [Docker Hub](https://hub.docker.com/r/wiiulegacy/libgui/) provides a prebuilt library in the `/artifacts` directory. Copy it into your DevkitPPC portlibs folder.  
