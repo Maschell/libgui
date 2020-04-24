@@ -241,13 +241,13 @@ class GuiElement : public AsyncDeleter::Element
         //!\param c Controller channel (0-3, -1 = none)
         virtual void setState(s32 s, s32 c = -1)
         {
-            if(c >= 0 && c < 4)
+            if(c >= 0 && c < 5)
             {
                 state[c] |= s;
             }
             else
             {
-                for(s32 i = 0; i < 4; i++)
+                for(s32 i = 0; i < 5; i++)
                     state[i] |= s;
             }
             stateChan = c;
@@ -255,13 +255,13 @@ class GuiElement : public AsyncDeleter::Element
         }
         virtual void clearState(s32 s, s32 c = -1)
         {
-            if(c >= 0 && c < 4)
+            if(c >= 0 && c < 5)
             {
                 state[c] &= ~s;
             }
             else
             {
-                for(s32 i = 0; i < 4; i++)
+                for(s32 i = 0; i < 5; i++)
                     state[i] &= ~s;
             }
             stateChan = c;
@@ -269,13 +269,13 @@ class GuiElement : public AsyncDeleter::Element
         }
         virtual bool isStateSet(s32 s, s32 c = -1) const
         {
-            if(c >= 0 && c < 4)
+            if(c >= 0 && c < 5)
             {
                 return (state[c] & s) != 0;
             }
             else
             {
-                for(s32 i = 0; i < 4; i++)
+                for(s32 i = 0; i < 5; i++)
                    if((state[i] & s) != 0)
                         return true;
 
@@ -291,7 +291,7 @@ class GuiElement : public AsyncDeleter::Element
         //!Resets the element's state to STATE_DEFAULT
         virtual void resetState()
         {
-            for(s32 i = 0; i < 4; i++)
+            for(s32 i = 0; i < 5; i++)
                 state[i] = STATE_DEFAULT;
             stateChan = -1;
         }
@@ -509,7 +509,7 @@ class GuiElement : public AsyncDeleter::Element
         f32 scaleY; //!< Element scale (1 = 100%)
         f32 scaleZ; //!< Element scale (1 = 100%)
         s32 alignment; //!< Horizontal element alignment, respective to parent element
-        s32 state[4]; //!< Element state (DEFAULT, SELECTED, CLICKED, DISABLED)
+        s32 state[5]; //!< Element state (DEFAULT, SELECTED, CLICKED, DISABLED)
         s32 stateChan; //!< Which controller channel is responsible for the last change in state
         GuiElement * parentElement; //!< Parent element
 
