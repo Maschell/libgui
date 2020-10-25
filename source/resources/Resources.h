@@ -1,6 +1,7 @@
 #ifndef RECOURCES_H_
 #define RECOURCES_H_
 
+#include <string>
 #include <map>
 #include <dynamic_libs/os_types.h>
 
